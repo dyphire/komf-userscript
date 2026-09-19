@@ -90,7 +90,7 @@ const config = configStore.kavita
 const apiKeyDisabled = ref(config.apiKey == '')
 
 function libraryLabel(library: { name: string | null, id: string }) {
-    return `${library.name} (${library.id})`
+    return `${library.name}`
 }
 </script>
 

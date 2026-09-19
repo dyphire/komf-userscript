@@ -767,6 +767,10 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.maleOnlyTagsFile = updated.maleOnlyTagsFile
         if (updated.titleTemplate != current?.titleTemplate)
             changes.titleTemplate = updated.titleTemplate
+        if (updated.tagTranslationEnabled != current?.tagTranslationEnabled)
+            changes.tagTranslationEnabled = updated.tagTranslationEnabled
+        if (updated.tagTranslationUrl != current?.tagTranslationUrl)
+            changes.tagTranslationUrl = updated.tagTranslationUrl
         if (updated.searchDomain != current?.searchDomain)
             changes.searchDomain = updated.searchDomain
         if (updated.ipbMemberId != current?.ipbMemberId)
@@ -899,18 +903,45 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
 
     function getLibraries() {
         if (settings.mediaServer == MediaServer.Komga) {
-            return Array.from(document.getElementsByClassName('v-navigation-drawer__content')[0]
-                .getElementsByTagName('a'))
-                .filter(el => el.classList.contains('v-list-item--dense') &&
-                    /\/libraries.*/.test(el.getAttribute('href')!)
-                ).map(el => {
-                    let pathTokens = el.getAttribute('href')!.split('/')
-                    return {
-                        id: pathTokens[pathTokens.findIndex(el => el == 'libraries') + 1],
-                        name: el.text
+            try {
+                const seen = new Set()
+                const libs = Array.from(document.querySelectorAll('a[href^="/libraries/"]')).map((el: any) => {
+                    const href = el.getAttribute('href') || ''
+                    const m = href.match(/^\/libraries\/([^/?]+)/)
+                    return m ? { id: m[1], name: (el.textContent || '').trim() } : null
+                }).filter((x: any) => x && x.id && x.name && !seen.has(x.id) && (seen.add(x.id), true)) as { id: string, name: string }[]
+                if (libs.length > 0) return libs
+            } catch (e) { /* ignore */ }
+            try {
+                const drawer = document.getElementsByClassName('v-navigation-drawer__content')[0]
+                const links = drawer ? drawer.getElementsByTagName('a') : []
+                const libs2 = Array.from(links).filter((el: any) =>
+                    el.classList.contains('v-list-item--dense') && /\/libraries.*/.test(el.getAttribute('href'))
+                ).map((el: any) => {
+                    const pathTokens = el.getAttribute('href').split('/')
+                    return { id: pathTokens[pathTokens.findIndex((el2: any) => el2 == 'libraries') + 1], name: el.text }
+                })
+                if (libs2.length > 0) return libs2
+            } catch (e) { /* ignore */ }
+            fetch('/api/v1/libraries', { credentials: 'include' })
+                .then((resp) => resp.ok ? resp.json() : Promise.reject(new Error('unauthorized')))
+                .then((apiLibs) => {
+                    if (Array.isArray(apiLibs) && apiLibs.length > 0) {
+                        libraries.value = apiLibs.map((l: any) => ({ id: l.id, name: l.name }))
                     }
                 })
+                .catch(() => {})
+            return []
         } else {
+            try {
+                const seen2 = new Set()
+                const libs3 = Array.from(document.querySelectorAll('a[href^="/library/"]')).map((el: any) => {
+                    const href = el.getAttribute('href') || ''
+                    const m = href.match(/^\/library\/([^/?]+)/)
+                    return m ? { id: m[1], name: (el.textContent || '').trim() } : null
+                }).filter((x: any) => x && x.id && x.name && !seen2.has(x.id) && (seen2.add(x.id), true)) as { id: string, name: string }[]
+                if (libs3.length > 0) return libs3
+            } catch (e) { /* ignore */ }
             return Array.from(document.getElementsByTagName('app-side-nav')[0]
                 .getElementsByTagName('a'))
                 .filter(el => el.classList.contains('side-nav-item') &&

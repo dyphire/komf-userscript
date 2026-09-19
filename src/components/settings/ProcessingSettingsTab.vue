@@ -13,7 +13,7 @@
     <template v-for="(library,index) in model.library" :key="library.id">
       <q-tab :name="library.id" v-if="!library.deleted" no-caps>
         <div>
-          {{ `${library.name} (${library.id})` }}
+          {{ `${library.name}` }}
           <q-btn flat
                  size="xs"
                  :icon-right="settings.mediaServer === MediaServer.Komga? 'mdi-close' :'fa fa-xmark'"

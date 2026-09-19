@@ -14,7 +14,7 @@
       <template v-for="(library,index) in config.libraryProviders" :key="library.id">
         <q-tab :name="library.id" v-if="!library.deleted" no-caps>
           <div>
-            {{ `${library.name} (${library.id})` }}
+            {{ `${library.name}` }}
             <q-btn flat
                    size="xs"
                    :icon-right="settings.mediaServer === MediaServer.Komga? 'mdi-close' :'fa fa-xmark'"
@@ -290,6 +290,17 @@
                                     dense
                                     filled
                                     hint="e.g. {{'{{title}}'}}{% if translator %} [{{'{{ translator }}'}}]{% endif %}"
+                                  />
+                                  <q-checkbox
+                                    v-model="config.defaultProviders[index].tagTranslationEnabled"
+                                    label="Tag Translation Enabled"
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].tagTranslationUrl"
+                                    label="Tag Translation URL"
+                                    dense
+                                    filled
+                                    hint="Custom tag translation JSON URL (empty = official release)"
                                   />
                                   <q-select
                                     v-model="config.defaultProviders[index].searchDomain"
@@ -760,6 +771,17 @@
                                   dense
                                   filled
                                   hint="e.g. {{'{{title}}'}}{% if translator %} [{{'{{ translator }}'}}]{% endif %}"
+                                />
+                                <q-checkbox
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].tagTranslationEnabled"
+                                  label="Tag Translation Enabled"
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].tagTranslationUrl"
+                                  label="Tag Translation URL"
+                                  dense
+                                  filled
+                                  hint="Custom tag translation JSON URL (empty = official release)"
                                 />
                                 <q-select
                                   v-model="config.libraryProviders[libraryIndex].providers[index].searchDomain"

@@ -166,7 +166,7 @@ function removeAppriseEntry(index: number) {
 }
 
 function libraryLabel(library: { name: string | null, id: string }) {
-    return `${library.name} (${library.id})`
+    return `${library.name}`
 }
 </script>
 

@@ -157,6 +157,7 @@ const seriesId = computed(() => {
     let path = window.location.pathname.split('/')
     return path[path.findIndex(el => el == 'series' || el == 'oneshot') + 1]
 })
+const isOneshot = computed(() => window.location.pathname.split('/').includes('oneshot'))
 
 const libraryId = computed(() => {
     if (settings.mediaServer == MediaServer.Komga) {
@@ -269,17 +270,36 @@ async function fetchProviderLink() {
     if (settings.mediaServer == MediaServer.Komga && seriesId.value && settings.linksMatchEnabled) {
         try {
             const resp = await fetch(`/api/v1/series/${seriesId.value}`, { credentials: 'include' })
+            let allLinks: { label?: string, url?: string }[] = []
+            let isOneshotSeries = false
             if (resp.ok) {
                 const s = await resp.json()
-                const links = (s.metadata && s.metadata.links) || []
-                const hits = links.map(parseProviderLink).filter(Boolean) as { provider: string, providerSeriesId: string, label: string, url: string }[]
-                if (hits.length > 0) {
-                    linkHits.value = hits
-                    selectedLink.value = hits[0]
-                    search.value = false
-                }
+                allLinks = (s.metadata && s.metadata.links) || []
+                isOneshotSeries = !!s.oneshot
             }
-        } catch (_e) { /* ignore */ }
+            // oneshot 且 series metadata 无 links → 读 book-level links
+            if (allLinks.length === 0 && isOneshotSeries) {
+                try {
+                    const booksResp = await fetch(`/api/v1/series/${seriesId.value}/books?unpaged=true`, { credentials: 'include' })
+                    if (booksResp.ok) {
+                        const booksData = await booksResp.json()
+                        const books = booksData.content || booksData || []
+                        for (const b of books) {
+                            const bl = (b.metadata && b.metadata.links) || []
+                            allLinks = allLinks.concat(bl)
+                        }
+                    }
+                } catch (_e) { /* optional */ }
+            }
+            const hits = allLinks.map(parseProviderLink).filter(Boolean) as { provider: string, providerSeriesId: string, label: string, url: string }[]
+            if (hits.length > 0) {
+                linkHits.value = hits
+                selectedLink.value = hits[0]
+                search.value = false
+            }
+        } catch (e) {
+            console.error('[komf-userscript] fetchProviderLink error:', e)
+        }
     }
 }
 
