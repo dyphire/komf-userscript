@@ -55,6 +55,29 @@
         hint="will match all libraries if empty"
       />
     </div>
+
+    <div class="col-auto">
+      <q-input
+        filled
+        v-model="config.eventListener.metadataSeriesExcludeFilter"
+        clearable
+        label="Metadata Series Exclude Filter"
+        hint="Comma-separated series ids to exclude"
+      />
+    </div>
+
+    <div class="col-auto">
+      <q-select
+        filled
+        v-model="config.eventListener.notificationsLibraryFilter"
+        multiple
+        clearable
+        :options="configStore.libraries"
+        :option-label="libraryLabel"
+        label="Notifications Library Filter"
+        hint="will notify for all libraries if empty"
+      />
+    </div>
   </div>
 </template>
 

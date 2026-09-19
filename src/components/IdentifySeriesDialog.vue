@@ -35,6 +35,53 @@
           </q-card-actions>
         </q-card>
 
+        <q-card flat v-if="!search && linkHits.length > 0">
+          <q-toolbar class="lt-sm">
+            <q-btn flat icon="mdi-close" @click="onDialogCancel" />
+            <q-toolbar-title>Identify</q-toolbar-title>
+            <q-space />
+            <q-btn color="secondary" :disable="loading || (!selectedLink && !aggregateMode)" @click="dialogConfirm">Confirm</q-btn>
+          </q-toolbar>
+          <div class="q-pa-md">
+            <div class="text-body2 q-pb-sm">Choose a series link:</div>
+            <q-list bordered separator>
+              <q-item
+                v-if="linkHits.length > 1"
+                clickable
+                :active="aggregateMode"
+                @click="aggregateMode = true; selectedLink = null"
+              >
+                <q-item-section avatar>
+                  <q-icon name="mdi-layers" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Aggregate all providers</q-item-label>
+                  <q-item-label caption>Merge metadata from all {{ linkHits.length }} provider links</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-for="(hit, i) in linkHits"
+                :key="i"
+                clickable
+                :active="!aggregateMode && selectedLink === hit"
+                @click="aggregateMode = false; selectedLink = hit"
+              >
+                <q-item-section avatar>
+                  <q-icon name="mdi-link" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ hit.label }}</q-item-label>
+                  <q-item-label caption>{{ hit.provider }} · {{ hit.providerSeriesId }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
+          <q-card-actions align="right" class="gt-xs q-pt-lg q-pb-sm">
+            <q-btn :disable="loading" @click="onDialogCancel">Cancel</q-btn>
+            <q-btn :loading="loading" color="secondary" :disable="!selectedLink && !aggregateMode" @click="dialogConfirm">Confirm</q-btn>
+          </q-card-actions>
+        </q-card>
+
         <q-card flat v-if="results">
 
           <q-toolbar class="lt-sm">
@@ -102,6 +149,9 @@ const form = reactive({ title: props.seriesTitle ?? '', edition: '' })
 const edition = ref('')
 const searchResults = ref<SearchResult[]>()
 const selectedResult = ref<SearchResult>({} as SearchResult)
+const linkHits = ref<{ provider: string, providerSeriesId: string, label: string, url: string }[]>([])
+const selectedLink = ref<{ provider: string, providerSeriesId: string, label: string, url: string } | null>(null)
+const aggregateMode = ref(false)
 
 const seriesId = computed(() => {
     let path = window.location.pathname.split('/')
@@ -149,11 +199,14 @@ async function searchSeries() {
 
 async function editMetadata() {
     if (seriesId.value) {
+        // aggregateMode 时服务端自动用所有 links（受 aggregateMetadata 控制），
+        // 这里传第一个命中作为 fallback provider
+        const info = aggregateMode.value ? linkHits.value[0] : selectedLink.value
         const request: IdentifyRequest = {
             libraryId: libraryId.value,
             seriesId: seriesId.value,
-            provider: selectedResult.value.provider,
-            providerSeriesId: selectedResult.value.resultId,
+            provider: info ? info.provider : selectedResult.value.provider,
+            providerSeriesId: info ? info.providerSeriesId : selectedResult.value.resultId,
             edition: edition.value == '' ? undefined : edition.value
         }
 
@@ -181,6 +234,56 @@ function handleEnterKeyPress() {
         searchSeries()
     }
 }
+
+function parseProviderLink(link: { url?: string, label?: string }) {
+    const url = (link.url || '').toLowerCase()
+    const label = link.label || ''
+    if ((url.includes('bgm.tv') || url.includes('bangumi.tv')) && url.includes('/subject/')) {
+        const m = url.match(/\/subject\/([^/?]+)/)
+        if (m) return { provider: 'bangumi', providerSeriesId: m[1], label, url: link.url || '' }
+    }
+    if (url.includes('e-hentai.org') || url.includes('exhentai.org')) {
+        const m = url.match(/\/g\/([^/]+)\/([^/]+)/)
+        if (m) return { provider: 'ehentai', providerSeriesId: m[1] + ';' + m[2], label, url: link.url || '' }
+    }
+    if (url.includes('anilist.co')) {
+        const m = url.match(/\/(anime|manga)\/(\d+)/)
+        if (m) return { provider: 'anilist', providerSeriesId: m[2], label, url: link.url || '' }
+    }
+    if (url.includes('myanimelist.net')) {
+        const m = url.match(/\/(anime|manga)\/(\d+)/)
+        if (m) return { provider: 'mal', providerSeriesId: m[2], label, url: link.url || '' }
+    }
+    if (url.includes('mangadex.org')) {
+        const m = url.match(/\/title\/([^/?]+)/)
+        if (m) return { provider: 'mangadex', providerSeriesId: m[1], label, url: link.url || '' }
+    }
+    if (url.includes('mangaupdates.com')) {
+        const m = url.match(/\/series\/([^/?]+)/) || url.match(/series\.html\?id=(\d+)/)
+        if (m) return { provider: 'mangaupdates', providerSeriesId: m[1], label, url: link.url || '' }
+    }
+    return null
+}
+
+async function fetchProviderLink() {
+    if (settings.mediaServer == MediaServer.Komga && seriesId.value && settings.linksMatchEnabled) {
+        try {
+            const resp = await fetch(`/api/v1/series/${seriesId.value}`, { credentials: 'include' })
+            if (resp.ok) {
+                const s = await resp.json()
+                const links = (s.metadata && s.metadata.links) || []
+                const hits = links.map(parseProviderLink).filter(Boolean) as { provider: string, providerSeriesId: string, label: string, url: string }[]
+                if (hits.length > 0) {
+                    linkHits.value = hits
+                    selectedLink.value = hits[0]
+                    search.value = false
+                }
+            }
+        } catch (_e) { /* ignore */ }
+    }
+}
+
+fetchProviderLink()
 </script>
 
 <style scoped lang="scss">

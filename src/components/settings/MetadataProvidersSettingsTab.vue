@@ -115,7 +115,7 @@
                                             label="Language"
                                 />
                                 <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.links"
-                                            label="Links"
+                                           label="Links"
                                 />
                                 <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.publisher"
                                             label="Publisher"
@@ -164,7 +164,7 @@
                                 />
                                 <q-checkbox v-model="config.defaultProviders[index].bookMetadata.links"
                                             :disable="!config.defaultProviders[index].seriesMetadata.books"
-                                            label="Links"
+                                           label="Links"
                                 />
                                 <q-checkbox v-model="config.defaultProviders[index].bookMetadata.number"
                                             :disable="!config.defaultProviders[index].seriesMetadata.books"
@@ -255,6 +255,110 @@
                                     filled
                                   />
                                 </div>
+
+                                <div v-if="element.name === 'eHentai'" class="col-auto" style="padding: 8px 0 0 0">
+                                  <q-input
+                                    v-model="config.defaultProviders[index].preferredLanguages"
+                                    label="Preferred Languages"
+                                    dense
+                                    filled
+                                    hint="Comma-separated BCP-47 codes (e.g. en, ja)"
+                                  />
+                                  <q-select
+                                    v-model="config.defaultProviders[index].titlePriority"
+                                    :options="['jpn', 'eng']"
+                                    label="Title Priority"
+                                    dense
+                                    filled
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].translatorKeywords"
+                                    label="Translator Keywords"
+                                    dense
+                                    filled
+                                    hint="Comma-separated (e.g. 中国翻訳, 漢化)"
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].maleOnlyTagsFile"
+                                    label="Male Only Tags File"
+                                    dense
+                                    filled
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].titleTemplate"
+                                    label="Title Template"
+                                    dense
+                                    filled
+                                    hint="e.g. {{'{{title}}'}}{% if translator %} [{{'{{ translator }}'}}]{% endif %}"
+                                  />
+                                  <q-select
+                                    v-model="config.defaultProviders[index].searchDomain"
+                                    :options="['e-hentai', 'exhentai']"
+                                    label="Search Domain"
+                                    dense
+                                    filled
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].ipbMemberId"
+                                    label="IPB Member Id"
+                                    dense
+                                    filled
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].ipbPassHash"
+                                    label="IPB Pass Hash"
+                                    dense
+                                    filled
+                                  />
+                                </div>
+
+                                <div v-if="element.name === 'bangumi'" class="col-auto" style="padding: 8px 0 0 0">
+                                  <q-input
+                                    v-model="config.defaultProviders[index].tagWhitelist"
+                                    label="Tag Whitelist"
+                                    dense
+                                    filled
+                                    hint="Comma-separated tags"
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].tagWhitelistFile"
+                                    label="Tag Whitelist File"
+                                    dense
+                                    filled
+                                  />
+                                </div>
+
+                                <div v-if="element.name === 'mangaDex'" class="col-auto" style="padding: 8px 0 0 0">
+                                  <q-input
+                                    v-model="config.defaultProviders[index].coverLanguages"
+                                    label="Cover Languages"
+                                    dense
+                                    filled
+                                    hint="Comma-separated BCP-47 codes (e.g. en, ja)"
+                                  />
+
+                                  <q-select v-model="config.defaultProviders[index].links" :options="['MANGADEX','ANILIST','ANIME_PLANET','BOOKWALKER_JP','MANGA_UPDATES','NOVEL_UPDATES','KITSU','AMAZON','EBOOK_JAPAN','MY_ANIME_LIST','CD_JAPAN','RAW','ENGLISH_TL']" label="Links" multiple dense filled />                                </div>
+
+                                <div v-if="element.name === 'mangaBaka'" class="col-auto" style="padding: 8px 0 0 0">
+                                  <q-select v-model="config.defaultProviders[index].mode" :options="['API','DATABASE']" label="Mode" dense filled />
+                                </div>
+
+                                <div v-if="element.name === 'aniList'" class="col-auto" style="padding: 8px 0 0 0">
+                                  <q-input
+                                    v-model.number="config.defaultProviders[index].tagsScoreThreshold"
+                                    label="Tags Score Threshold"
+                                    dense
+                                    filled
+                                    type="number"
+                                  />
+                                  <q-input
+                                    v-model.number="config.defaultProviders[index].tagsSizeLimit"
+                                    label="Tags Size Limit"
+                                    dense
+                                    filled
+                                    type="number"
+                                  />
+                                </div>
                               </q-expansion-item>
                             </q-card-section>
                           </q-card>
@@ -342,6 +446,54 @@
               </div>
             </div>
           </div>
+
+          <div class="col-auto" style="padding: 8px 0 0 0">
+            <div class="row">
+              <div class="col" style="padding: 0">
+                <q-input v-model="config.bangumiToken"
+                         label="Bangumi Token"
+                         dense
+                         filled
+                         :disable="config.bangumiTokenDisabled"
+                />
+              </div>
+              <div class="col-auto" v-if="config.bangumiTokenDisabled" style="padding: 0">
+                <q-btn
+                  @click="config.bangumiToken=''; config.bangumiTokenDisabled=false"
+                  flat
+                  round
+                  :icon="settings.mediaServer === MediaServer.Komga? 'mdi-pencil' :'fa fa-pencil'"
+                  :size="settings.mediaServer === MediaServer.Komga? 'md':'sm'"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="col-auto" style="padding: 8px 0 0 0">
+            <q-input v-model.number="config.comicVineSearchLimit"
+                     label="ComicVine Search Limit"
+                     dense
+                     filled
+                     type="number"
+            />
+          </div>
+
+          <div class="col-auto" style="padding: 8px 0 0 0">
+            <q-input v-model="config.comicVineIssueName"
+                     label="ComicVine Issue Name"
+                     dense
+                     filled
+            />
+          </div>
+
+          <div class="col-auto" style="padding: 8px 0 0 0">
+            <q-input v-model="config.comicVineIdFormat"
+                     label="ComicVine Id Format"
+                     dense
+                     filled
+                     hint="One of SERIES, VOLUME, ISSUE"
+            />
+          </div>
         </div>
 
       </q-tab-panel>
@@ -414,7 +566,7 @@
                               />
                               <q-checkbox
                                 v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.links"
-                                label="Links"
+                               label="Links"
                               />
                               <q-checkbox
                                 v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.publisher"
@@ -478,7 +630,7 @@
                               <q-checkbox
                                 v-model="config.libraryProviders[libraryIndex].providers[index].bookMetadata.links"
                                 :disable="!config.libraryProviders[libraryIndex].providers[index].seriesMetadata.books"
-                                label="Links"
+                               label="Links"
                               />
                               <q-checkbox
                                 v-model="config.libraryProviders[libraryIndex].providers[index].bookMetadata.number"
@@ -571,6 +723,110 @@
                                   label="French Publisher Tag Name"
                                   dense
                                   filled
+                                />
+                              </div>
+
+                              <div v-if="element.name === 'eHentai'" class="col-auto" style="padding: 8px 0 0 0">
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].preferredLanguages"
+                                  label="Preferred Languages"
+                                  dense
+                                  filled
+                                  hint="Comma-separated BCP-47 codes (e.g. en, ja)"
+                                />
+                                <q-select
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].titlePriority"
+                                  :options="['jpn', 'eng']"
+                                  label="Title Priority"
+                                  dense
+                                  filled
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].translatorKeywords"
+                                  label="Translator Keywords"
+                                  dense
+                                  filled
+                                  hint="Comma-separated (e.g. 中国翻訳, 漢化)"
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].maleOnlyTagsFile"
+                                  label="Male Only Tags File"
+                                  dense
+                                  filled
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].titleTemplate"
+                                  label="Title Template"
+                                  dense
+                                  filled
+                                  hint="e.g. {{'{{title}}'}}{% if translator %} [{{'{{ translator }}'}}]{% endif %}"
+                                />
+                                <q-select
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].searchDomain"
+                                  :options="['e-hentai', 'exhentai']"
+                                  label="Search Domain"
+                                  dense
+                                  filled
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].ipbMemberId"
+                                  label="IPB Member Id"
+                                  dense
+                                  filled
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].ipbPassHash"
+                                  label="IPB Pass Hash"
+                                  dense
+                                  filled
+                                />
+                              </div>
+
+                              <div v-if="element.name === 'bangumi'" class="col-auto" style="padding: 8px 0 0 0">
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].tagWhitelist"
+                                  label="Tag Whitelist"
+                                  dense
+                                  filled
+                                  hint="Comma-separated tags"
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].tagWhitelistFile"
+                                  label="Tag Whitelist File"
+                                  dense
+                                  filled
+                                />
+                              </div>
+
+                              <div v-if="element.name === 'mangaDex'" class="col-auto" style="padding: 8px 0 0 0">
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].coverLanguages"
+                                  label="Cover Languages"
+                                  dense
+                                  filled
+                                  hint="Comma-separated BCP-47 codes (e.g. en, ja)"
+                                />
+
+                                  <q-select v-model="config.libraryProviders[libraryIndex].providers[index].links" :options="['MANGADEX','ANILIST','ANIME_PLANET','BOOKWALKER_JP','MANGA_UPDATES','NOVEL_UPDATES','KITSU','AMAZON','EBOOK_JAPAN','MY_ANIME_LIST','CD_JAPAN','RAW','ENGLISH_TL']" label="Links" multiple dense filled />                              </div>
+
+                                <div v-if="element.name === 'mangaBaka'" class="col-auto" style="padding: 8px 0 0 0">
+                                  <q-select v-model="config.libraryProviders[libraryIndex].providers[index].mode" :options="['API','DATABASE']" label="Mode" dense filled />
+                                </div>
+
+                              <div v-if="element.name === 'aniList'" class="col-auto" style="padding: 8px 0 0 0">
+                                <q-input
+                                  v-model.number="config.libraryProviders[libraryIndex].providers[index].tagsScoreThreshold"
+                                  label="Tags Score Threshold"
+                                  dense
+                                  filled
+                                  type="number"
+                                />
+                                <q-input
+                                  v-model.number="config.libraryProviders[libraryIndex].providers[index].tagsSizeLimit"
+                                  label="Tags Size Limit"
+                                  dense
+                                  filled
+                                  type="number"
                                 />
                               </div>
                             </q-expansion-item>

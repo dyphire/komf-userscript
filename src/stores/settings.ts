@@ -6,5 +6,7 @@ import type MediaServer from '@/types/mediaServer'
 export const useSettingsStore = defineStore('settings', () => {
     const komfUrl = useStorage('komf-url', 'http://localhost:8085')
     const mediaServer: Ref<MediaServer | undefined> = ref()
-    return { komfUrl, mediaServer }
+    const linksMatchEnabled = ref(true)
+    const linksSkipEnabled = ref(true)
+    return { komfUrl, mediaServer, linksMatchEnabled, linksSkipEnabled }
 })

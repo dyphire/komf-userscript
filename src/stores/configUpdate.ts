@@ -4,6 +4,8 @@ import { reactive, ref } from 'vue'
 import type {
     BookMetadataConfigDto,
     BookMetadataConfigUpdateDto,
+    AppriseConfigDto,
+    AppriseConfigUpdateDto,
     DiscordConfigDto,
     DiscordConfigUpdateDto,
     EventListenerConfigDto,
@@ -33,30 +35,60 @@ import { DefaultProviderConfig } from '@/types/komf-config'
 import { useSettingsStore } from '@/stores/settings'
 import MediaServer from '@/types/mediaServer'
 
+const defaultSearchTitleExtraction = () => ({
+    enabled: false,
+    bracketRegex: null as string | null,
+    authorSeparator: null as string | null,
+    titleSplitters: [] as string[],
+    symbolNormalizeRegex: "[:：•·․,，。'’?？!！~⁓～]" as string,
+    charMappings: [] as string[][],
+    cleanupRegex: [] as string[]
+})
+
+const defaultChineseConversion = () => ({
+    enabled: false,
+    direction: 't2s',
+    search: true,
+    matching: true,
+    update: { enabled: true, fields: ['title'] as string[] }
+})
+
 export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
     const settings = useSettingsStore()
     const libraries = ref([{ id: '', name: '' }])
     const currentConfig: Ref<KomfConfigDto | null> = ref(null)
-    const providersWithBooks = ['nautiljon', 'yenPress', 'kodansha', 'viz', 'bookWalker', 'mangaDex', 'bangumi', 'comicVine']
-    const providersWithMediaType = ['mangaUpdates', 'mal', 'nautiljon', 'aniList', 'yenPress', 'bookWalker', 'bangumi']
+    const providersWithBooks = ['mangaBaka', 'nautiljon', 'yenPress', 'kodansha', 'viz', 'bookWalker', 'mangaDex', 'bangumi', 'comicVine', 'webtoons']
+    const providersWithMediaType = ['mangaBaka', 'mangaUpdates', 'mal', 'nautiljon', 'aniList', 'yenPress', 'bookWalker', 'bangumi', 'webtoons', 'eHentai']
 
     const notifications = reactive({
-        komgaLibraries: [] as { name: string | undefined, id: string }[] | null,
-        kavitaLibraries: [] as { name: string | undefined, id: string }[] | null,
         webhooks: [
             {
                 value: '' as string | null,
                 existing: false
             }
         ],
-        seriesCover: false
+        seriesCover: false,
+        apprise: {
+            urls: [
+                {
+                    value: '' as string | null,
+                    existing: false
+                }
+            ],
+            seriesCover: false
+        }
     })
 
     const metadataProviders = reactive({
         malClientId: '',
         malClientIdDisabled: false,
-        comicVineClientId: '' as string | undefined,
+        comicVineClientId: '',
         comicVineClientIdDisabled: false,
+        bangumiToken: '',
+        bangumiTokenDisabled: true,
+        comicVineSearchLimit: null as number | null,
+        comicVineIssueName: null as string | null,
+        comicVineIdFormat: null as string | null,
         nameMatchingMode: 'CLOSEST_MATCH',
         defaultProviders: [{
             name: 'MangaUpdates',
@@ -90,24 +122,38 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         }]
     })
 
+    const processingDefaults = () => ({
+        libraryType: 'MANGA',
+        aggregateMetadata: false,
+        mergeTags: false,
+        mergeGenres: false,
+        modes: ['API'],
+        bookCovers: false,
+        seriesCovers: false,
+        overrideExistingCovers: true,
+        lockCovers: true,
+        overrideComicInfo: false,
+        seriesTitle: false,
+        seriesTitleLanguage: 'en',
+        alternativeTitles: false,
+        alternativeTitleLanguages: ['en', 'ja', 'ja-ro'],
+        fallbackToAltTitle: false,
+        orderBooks: false,
+        readingDirectionValue: null as string | null,
+        languageValue: null as string | null,
+        scoreTagName: null as string | null,
+        originalPublisherTagName: null as string | null,
+        publisherTagNames: [] as { tagName: string, language: string }[],
+        alternateTitleLabels: { romaji: null as string | null, native: null as string | null, localized: null as string | null },
+        linksSkipEnabled: true,
+        linksMatchEnabled: true,
+        searchTitleExtraction: defaultSearchTitleExtraction(),
+        failedMatchCollectionName: null as string | null,
+        chineseConversion: defaultChineseConversion()
+    })
+
     const komgaMetadata = reactive({
-        default: {
-            libraryType: 'MANGA',
-            aggregateMetadata: false,
-            mergeTags: false,
-            mergeGenres: false,
-            modes: ['API'],
-            bookCovers: false,
-            seriesCovers: false,
-            overrideExistingCovers: true,
-            seriesTitle: false,
-            seriesTitleLanguage: 'en',
-            alternativeTitles: false,
-            alternativeTitleLanguages: ['en', 'ja', 'ja-ro'],
-            orderBooks: false,
-            readingDirectionValue: null,
-            languageValue: null
-        } as ProcessingUpdateModel,
+        default: processingDefaults() as ProcessingUpdateModel,
         library: [] as ProcessingLibraryUpdateModel[]
     })
 
@@ -116,9 +162,13 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         user: 'admin@example.org',
         password: '',
         passwordDisabled: true,
+        apiKey: '',
+        apiKeyDisabled: true,
         eventListener: {
             enabled: false,
-            libraries: [] as { name: string | undefined, id: string }[] | null
+            libraries: [] as { name: string | undefined, id: string }[] | null,
+            metadataSeriesExcludeFilter: [] as any,
+            notificationsLibraryFilter: [] as any
         }
     })
 
@@ -127,25 +177,13 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         apiKey: '',
         eventListener: {
             enabled: false,
-            libraries: [] as { name: string | undefined, id: string }[] | null
+            libraries: [] as { name: string | undefined, id: string }[] | null,
+            metadataSeriesExcludeFilter: [] as any,
+            notificationsLibraryFilter: [] as any
         }
     })
     const kavitaMetadata = reactive({
-        default: {
-            libraryType: 'MANGA',
-            aggregateMetadata: false,
-            mergeTags: false,
-            mergeGenres: false,
-            modes: ['API'],
-            bookCovers: false,
-            seriesCovers: false,
-            seriesTitle: false,
-            seriesTitleLanguage: 'en',
-            alternativeTitles: false,
-            alternativeTitleLanguages: ['en', 'ja', 'ja-ro'],
-            orderBooks: false,
-            languageValue: null
-        } as ProcessingUpdateModel,
+        default: processingDefaults() as ProcessingUpdateModel,
         library: [] as ProcessingLibraryUpdateModel[]
     })
 
@@ -153,30 +191,26 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         libraries.value = getLibraries()
         currentConfig.value = structuredClone(config)
 
-        notifications.webhooks = Object.entries(config.discord?.webhooks ?? {})
+        notifications.webhooks = Object.entries(config.notifications.discord?.webhooks ?? {})
             .map(([, value]) => {
                 return { value: value, existing: true }
             })
-        notifications.seriesCover = config.discord?.seriesCover
-        notifications.komgaLibraries = config.komga.notifications.libraries
-            .map(id => {
-                return {
-                    name: libraries.value.find(library => library.id == id)?.name,
-                    id: id
-                }
+        notifications.seriesCover = config.notifications.discord?.seriesCover
+        notifications.apprise.urls = Object.entries(config.notifications.apprise?.urls ?? {})
+            .map(([, value]) => {
+                return { value: value, existing: true }
             })
-        notifications.kavitaLibraries = config.kavita.notifications.libraries
-            .map(id => {
-                return {
-                    name: libraries.value.find(library => library.id == id)?.name,
-                    id: id
-                }
-            })
+        notifications.apprise.seriesCover = config.notifications.apprise?.seriesCover
 
         metadataProviders.malClientId = config.metadataProviders.malClientId
         metadataProviders.malClientIdDisabled = config.metadataProviders.malClientId != ''
-        metadataProviders.comicVineClientId = config.metadataProviders.comicVineClientId
+        metadataProviders.comicVineClientId = config.metadataProviders.comicVineClientId ?? ''
         metadataProviders.comicVineClientIdDisabled = config.metadataProviders.comicVineClientId != undefined
+        metadataProviders.bangumiToken = config.metadataProviders.bangumiToken ?? ''
+        metadataProviders.bangumiTokenDisabled = config.metadataProviders.bangumiToken != ''
+        metadataProviders.comicVineSearchLimit = config.metadataProviders.comicVineSearchLimit ?? null
+        metadataProviders.comicVineIssueName = config.metadataProviders.comicVineIssueName ?? null
+        metadataProviders.comicVineIdFormat = config.metadataProviders.comicVineIdFormat ?? null
         metadataProviders.nameMatchingMode = config.metadataProviders.nameMatchingMode
         metadataProviders.defaultProviders = Object.entries(config.metadataProviders.defaultProviders)
             .sort((a, b) => a[1].priority - b[1].priority)
@@ -225,100 +259,79 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         komga.user = config.komga.komgaUser
         komga.password = ''
         komga.passwordDisabled = true
+        komga.apiKey = config.komga.apiKey ?? ''
+        komga.apiKeyDisabled = config.komga.apiKey != undefined && config.komga.apiKey != ''
         komga.eventListener.enabled = config.komga.eventListener.enabled
-        komga.eventListener.libraries = config.komga.eventListener.libraries
+        komga.eventListener.libraries = config.komga.eventListener.metadataLibraryFilter
             .map(id => {
                 return {
                     name: libraries.value.find(library => library.id == id)?.name,
                     id: id
                 }
             })
+        komga.eventListener.metadataSeriesExcludeFilter = config.komga.eventListener.metadataSeriesExcludeFilter ?? []
+        komga.eventListener.notificationsLibraryFilter = config.komga.eventListener.notificationsLibraryFilter ?? []
 
-        komgaMetadata.default.aggregateMetadata = config.komga.metadataUpdate.default.aggregate
-        komgaMetadata.default.mergeTags = config.komga.metadataUpdate.default.mergeTags
-        komgaMetadata.default.mergeGenres = config.komga.metadataUpdate.default.mergeGenres
-        komgaMetadata.default.modes = config.komga.metadataUpdate.default.updateModes
-        komgaMetadata.default.bookCovers = config.komga.metadataUpdate.default.bookCovers
-        komgaMetadata.default.seriesCovers = config.komga.metadataUpdate.default.seriesCovers
-        komgaMetadata.default.overrideExistingCovers = config.komga.metadataUpdate.default.overrideExistingCovers
-        komgaMetadata.default.seriesTitle = config.komga.metadataUpdate.default.postProcessing.seriesTitle
-        komgaMetadata.default.seriesTitleLanguage = config.komga.metadataUpdate.default.postProcessing.seriesTitleLanguage
-        komgaMetadata.default.orderBooks = config.komga.metadataUpdate.default.postProcessing.orderBooks
-        komgaMetadata.default.readingDirectionValue = config.komga.metadataUpdate.default.postProcessing.readingDirectionValue
-        komgaMetadata.default.languageValue = config.komga.metadataUpdate.default.postProcessing.languageValue
-        komgaMetadata.default.alternativeTitles = config.komga.metadataUpdate.default.postProcessing.alternativeSeriesTitles
-        komgaMetadata.default.alternativeTitleLanguages = config.komga.metadataUpdate.default.postProcessing.alternativeSeriesTitleLanguages
-
+        applyProcessing(komgaMetadata.default, config.komga.metadataUpdate.default)
         komgaMetadata.library = Object.entries(config.komga.metadataUpdate.library)
-            .map(([libraryId, libraryConfig]) => {
-                return {
-                    id: libraryId,
-                    name: libraries.value.find(l => l.id == libraryId)?.name ?? '',
-                    deleted: false,
-                    libraryType: libraryConfig.libraryType,
-                    aggregateMetadata: libraryConfig.aggregate,
-                    mergeTags: libraryConfig.mergeTags,
-                    mergeGenres: libraryConfig.mergeGenres,
-                    modes: libraryConfig.updateModes,
-                    bookCovers: libraryConfig.bookCovers,
-                    seriesCovers: libraryConfig.seriesCovers,
-                    overrideExistingCovers: libraryConfig.overrideExistingCovers,
-                    seriesTitle: libraryConfig.postProcessing.seriesTitle,
-                    seriesTitleLanguage: libraryConfig.postProcessing.seriesTitleLanguage,
-                    orderBooks: libraryConfig.postProcessing.orderBooks,
-                    readingDirectionValue: libraryConfig.postProcessing.readingDirectionValue,
-                    languageValue: libraryConfig.postProcessing.languageValue,
-                    alternativeTitles: libraryConfig.postProcessing.alternativeSeriesTitles,
-                    alternativeTitleLanguages: libraryConfig.postProcessing.alternativeSeriesTitleLanguages
-                }
-            })
+            .map(([libraryId, libraryConfig]) => mapLibraryProcessing(libraryId, libraryConfig))
 
         kavita.baseUri = config.kavita.baseUri
         kavita.eventListener.enabled = config.kavita.eventListener.enabled
-        kavita.eventListener.libraries = config.kavita.eventListener.libraries
+        kavita.eventListener.libraries = config.kavita.eventListener.metadataLibraryFilter
             .map(id => {
                 return {
                     name: libraries.value.find(library => library.id == id)?.name,
                     id: id
                 }
             })
+        kavita.eventListener.metadataSeriesExcludeFilter = config.kavita.eventListener.metadataSeriesExcludeFilter ?? []
+        kavita.eventListener.notificationsLibraryFilter = config.kavita.eventListener.notificationsLibraryFilter ?? []
         kavita.apiKey = ''
 
-        kavitaMetadata.default.aggregateMetadata = config.kavita.metadataUpdate.default.aggregate
-        kavitaMetadata.default.mergeTags = config.kavita.metadataUpdate.default.mergeTags
-        kavitaMetadata.default.mergeGenres = config.kavita.metadataUpdate.default.mergeGenres
-        kavitaMetadata.default.modes = config.kavita.metadataUpdate.default.updateModes
-        kavitaMetadata.default.bookCovers = config.kavita.metadataUpdate.default.bookCovers
-        kavitaMetadata.default.seriesCovers = config.kavita.metadataUpdate.default.seriesCovers
-        kavitaMetadata.default.overrideExistingCovers = config.kavita.metadataUpdate.default.overrideExistingCovers
-        kavitaMetadata.default.seriesTitle = config.kavita.metadataUpdate.default.postProcessing.seriesTitle
-        kavitaMetadata.default.seriesTitleLanguage = config.kavita.metadataUpdate.default.postProcessing.seriesTitleLanguage
-        kavitaMetadata.default.languageValue = config.kavita.metadataUpdate.default.postProcessing.languageValue
-        kavitaMetadata.default.alternativeTitles = config.kavita.metadataUpdate.default.postProcessing.alternativeSeriesTitles
-        kavitaMetadata.default.alternativeTitleLanguages = config.kavita.metadataUpdate.default.postProcessing.alternativeSeriesTitleLanguages
-
+        applyProcessing(kavitaMetadata.default, config.kavita.metadataUpdate.default)
         kavitaMetadata.library = Object.entries(config.kavita.metadataUpdate.library)
-            .map(([libraryId, libraryConfig]) => {
-                return {
-                    id: libraryId,
-                    name: libraries.value.find(l => l.id == libraryId)?.name ?? '',
-                    deleted: false,
-                    libraryType: libraryConfig.libraryType,
-                    aggregateMetadata: libraryConfig.aggregate,
-                    mergeTags: libraryConfig.mergeTags,
-                    mergeGenres: libraryConfig.mergeGenres,
-                    modes: libraryConfig.updateModes,
-                    bookCovers: libraryConfig.bookCovers,
-                    seriesCovers: libraryConfig.seriesCovers,
-                    overrideExistingCovers: libraryConfig.overrideExistingCovers,
-                    seriesTitle: libraryConfig.postProcessing.seriesTitle,
-                    seriesTitleLanguage: libraryConfig.postProcessing.seriesTitleLanguage,
-                    orderBooks: libraryConfig.postProcessing.orderBooks,
-                    languageValue: libraryConfig.postProcessing.languageValue,
-                    alternativeTitles: libraryConfig.postProcessing.alternativeSeriesTitles,
-                    alternativeTitleLanguages: libraryConfig.postProcessing.alternativeSeriesTitleLanguages
-                }
-            })
+            .map(([libraryId, libraryConfig]) => mapLibraryProcessing(libraryId, libraryConfig))
+    }
+
+    function applyProcessing(model: ProcessingUpdateModel, dto: MetadataProcessingConfigDto) {
+        model.aggregateMetadata = dto.aggregate
+        model.mergeTags = dto.mergeTags
+        model.mergeGenres = dto.mergeGenres
+        model.modes = dto.updateModes
+        model.bookCovers = dto.bookCovers
+        model.seriesCovers = dto.seriesCovers
+        model.overrideExistingCovers = dto.overrideExistingCovers
+        model.lockCovers = dto.lockCovers ?? true
+        model.overrideComicInfo = dto.overrideComicInfo ?? false
+        model.seriesTitle = dto.postProcessing.seriesTitle
+        model.seriesTitleLanguage = dto.postProcessing.seriesTitleLanguage
+        model.fallbackToAltTitle = dto.postProcessing.fallbackToAltTitle ?? false
+        model.orderBooks = dto.postProcessing.orderBooks
+        model.readingDirectionValue = dto.postProcessing.readingDirectionValue
+        model.languageValue = dto.postProcessing.languageValue
+        model.scoreTagName = dto.postProcessing.scoreTagName ?? null
+        model.originalPublisherTagName = dto.postProcessing.originalPublisherTagName ?? null
+        model.publisherTagNames = dto.postProcessing.publisherTagNames ?? []
+        model.alternateTitleLabels = dto.postProcessing.alternateTitleLabels ?? { romaji: null, native: null, localized: null }
+        model.linksSkipEnabled = dto.postProcessing.linksSkipEnabled ?? true
+        model.linksMatchEnabled = dto.postProcessing.linksMatchEnabled ?? true
+        settings.linksSkipEnabled = model.linksSkipEnabled
+        settings.linksMatchEnabled = model.linksMatchEnabled
+        model.alternativeTitles = dto.postProcessing.alternativeSeriesTitles
+        model.alternativeTitleLanguages = dto.postProcessing.alternativeSeriesTitleLanguages
+        model.searchTitleExtraction = dto.searchTitleExtraction ?? defaultSearchTitleExtraction()
+        model.failedMatchCollectionName = dto.failedMatchCollectionName ?? null
+        model.chineseConversion = dto.chineseConversion ?? defaultChineseConversion()
+    }
+
+    function mapLibraryProcessing(libraryId: string, dto: MetadataProcessingConfigDto): ProcessingLibraryUpdateModel {
+        let model = processingDefaults() as ProcessingLibraryUpdateModel
+        model.id = libraryId
+        model.name = libraries.value.find(l => l.id == libraryId)?.name ?? ''
+        model.deleted = false
+        applyProcessing(model, dto)
+        return model
     }
 
     function getUpdates() {
@@ -329,8 +342,32 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         changes.kavita = getKavitaUpdates(config.kavita)
         changes.komga = getKomgaUpdates(config.komga)
         changes.metadataProviders = getMetadataProvidersUpdates()
-        changes.discord = getDiscordUpdates(config.discord)
+        const discordChanges = getDiscordUpdates(config.notifications.discord)
+        const appriseChanges = getAppriseUpdates(config.notifications.apprise)
+        if (discordChanges || appriseChanges) {
+            changes.notifications = {}
+            if (discordChanges) changes.notifications.discord = discordChanges
+            if (appriseChanges) changes.notifications.apprise = appriseChanges
+        }
         return changes
+    }
+
+    function getAppriseUpdates(currentConfig: AppriseConfigDto | undefined): AppriseConfigUpdateDto | undefined {
+        let changes: AppriseConfigUpdateDto = {}
+        if (notifications.apprise.seriesCover != currentConfig?.seriesCover)
+            changes.seriesCover = notifications.apprise.seriesCover
+        let currentUrls = Object.entries(currentConfig?.urls ?? {})
+            .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+            .map(([, value]) => value)
+
+        let urlChanges = notifications.apprise.urls.map((obj, index) => {
+            return [index, obj.value]
+        }).filter(([index, value]) => !(index as number in currentUrls) || currentUrls[index as number] != value)
+        if (Object.entries(urlChanges).filter(val => val[1] != undefined).length != 0)
+            changes.urls = Object.fromEntries(urlChanges)
+
+        if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
+        else return changes
     }
 
     function getKomgaUpdates(current: KomgaConfigDto): KomgaConfigUpdateDto | undefined {
@@ -341,16 +378,16 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.komgaUser = komga.user
         if (!komga.passwordDisabled && komga.password != '')
             changes.komgaPassword = komga.password
+        if (!komga.apiKeyDisabled && komga.apiKey != '')
+            changes.apiKey = komga.apiKey
 
         let eventListenerPatch = {
             enabled: komga.eventListener.enabled,
-            libraries: komga.eventListener.libraries?.map(library => library.id) ?? []
+            metadataLibraryFilter: komga.eventListener.libraries?.map(library => library.id) ?? [],
+            metadataSeriesExcludeFilter: komga.eventListener.metadataSeriesExcludeFilter,
+            notificationsLibraryFilter: komga.eventListener.notificationsLibraryFilter
         }
         changes.eventListener = getEventListenerUpdates(current.eventListener, eventListenerPatch)
-        changes.notifications = getNotificationsUpdates(
-            current.notifications,
-            { libraries: notifications.komgaLibraries?.map(lib => lib.id) ?? [] }
-        )
         changes.metadataUpdate = getMetadataUpdates(current.metadataUpdate, komgaMetadata)
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
@@ -366,12 +403,11 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
 
         let eventListenerPatch = {
             enabled: kavita.eventListener.enabled,
-            libraries: kavita.eventListener.libraries?.map(library => library.id) ?? []
+            metadataLibraryFilter: kavita.eventListener.libraries?.map(library => library.id) ?? [],
+            metadataSeriesExcludeFilter: kavita.eventListener.metadataSeriesExcludeFilter,
+            notificationsLibraryFilter: kavita.eventListener.notificationsLibraryFilter
         }
         changes.eventListener = getEventListenerUpdates(current.eventListener, eventListenerPatch)
-        changes.notifications = getNotificationsUpdates(current.notifications,
-            { libraries: notifications.kavitaLibraries?.map(lib => lib.id) ?? [] }
-        )
         changes.metadataUpdate = getMetadataUpdates(current.metadataUpdate, kavitaMetadata)
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
@@ -388,6 +424,11 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
         else return changes
+    }
+
+    function toArray(val: unknown): string[] {
+        if (Array.isArray(val)) return val as string[]
+        return String(val ?? '').split(',').map(s => s.trim()).filter(s => s !== '')
     }
 
     function getMetadataProcessingUpdates(
@@ -409,6 +450,10 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.seriesCovers = patch.seriesCovers
         if (patch.overrideExistingCovers != current?.overrideExistingCovers)
             changes.overrideExistingCovers = patch.overrideExistingCovers
+        if (patch.lockCovers != current?.lockCovers)
+            changes.lockCovers = patch.lockCovers
+        if (patch.overrideComicInfo != current?.overrideComicInfo)
+            changes.overrideComicInfo = patch.overrideComicInfo
         if (!patch.modes.every((v, i) => v === current?.updateModes[i]))
             changes.updateModes = patch.modes
 
@@ -421,15 +466,78 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             postProcessingChanges.alternativeSeriesTitles = patch.alternativeTitles
         if (!equalArrays(patch.alternativeTitleLanguages, current?.postProcessing.alternativeSeriesTitleLanguages ?? []))
             postProcessingChanges.alternativeSeriesTitleLanguages = patch.alternativeTitleLanguages
+        if (patch.fallbackToAltTitle != current?.postProcessing.fallbackToAltTitle)
+            postProcessingChanges.fallbackToAltTitle = patch.fallbackToAltTitle
         if (patch.orderBooks != current?.postProcessing.orderBooks)
             postProcessingChanges.orderBooks = patch.orderBooks
         if (patch.readingDirectionValue != current?.postProcessing.readingDirectionValue)
             postProcessingChanges.readingDirectionValue = patch.readingDirectionValue
         if (patch.languageValue != current?.postProcessing.languageValue)
             postProcessingChanges.languageValue = patch.languageValue
+        if (patch.scoreTagName != current?.postProcessing.scoreTagName)
+            postProcessingChanges.scoreTagName = patch.scoreTagName
+        if (patch.originalPublisherTagName != current?.postProcessing.originalPublisherTagName)
+            postProcessingChanges.originalPublisherTagName = patch.originalPublisherTagName
+        if (JSON.stringify(patch.publisherTagNames ?? []) != JSON.stringify(current?.postProcessing.publisherTagNames ?? []))
+            postProcessingChanges.publisherTagNames = patch.publisherTagNames
+        if (JSON.stringify(patch.alternateTitleLabels) != JSON.stringify(current?.postProcessing.alternateTitleLabels))
+            postProcessingChanges.alternateTitleLabels = patch.alternateTitleLabels
+        if (patch.linksSkipEnabled != current?.postProcessing.linksSkipEnabled)
+            postProcessingChanges.linksSkipEnabled = patch.linksSkipEnabled
+        if (patch.linksMatchEnabled != current?.postProcessing.linksMatchEnabled)
+            postProcessingChanges.linksMatchEnabled = patch.linksMatchEnabled
         if (Object.entries(postProcessingChanges).every(val => val[1] === undefined)) postProcessingChanges = undefined
 
         changes.postProcessing = postProcessingChanges
+
+        let searchTitleExtractionChanges: NonNullable<MetadataProcessingConfigUpdateDto['searchTitleExtraction']> | undefined = {}
+        let curSte = current?.searchTitleExtraction
+        if (patch.searchTitleExtraction.enabled != curSte?.enabled)
+            searchTitleExtractionChanges.enabled = patch.searchTitleExtraction.enabled
+        if (patch.searchTitleExtraction.bracketRegex != curSte?.bracketRegex)
+            searchTitleExtractionChanges.bracketRegex = patch.searchTitleExtraction.bracketRegex
+        if (patch.searchTitleExtraction.authorSeparator != curSte?.authorSeparator)
+            searchTitleExtractionChanges.authorSeparator = patch.searchTitleExtraction.authorSeparator
+        let titleSplittersVal = toArray(patch.searchTitleExtraction.titleSplitters)
+        if (!equalArrays(titleSplittersVal, curSte?.titleSplitters ?? []))
+            searchTitleExtractionChanges.titleSplitters = titleSplittersVal
+        if (patch.searchTitleExtraction.symbolNormalizeRegex != curSte?.symbolNormalizeRegex)
+            searchTitleExtractionChanges.symbolNormalizeRegex = patch.searchTitleExtraction.symbolNormalizeRegex
+        let charMappingsVal: unknown = patch.searchTitleExtraction.charMappings
+        if (typeof charMappingsVal === 'string' && charMappingsVal.trim() !== '') {
+            try { charMappingsVal = JSON.parse(charMappingsVal) } catch (e) { charMappingsVal = [] }
+        }
+        if (JSON.stringify(charMappingsVal) != JSON.stringify(curSte?.charMappings))
+            searchTitleExtractionChanges.charMappings = charMappingsVal as string[][]
+        let cleanupRegexVal = toArray(patch.searchTitleExtraction.cleanupRegex)
+        if (!equalArrays(cleanupRegexVal, curSte?.cleanupRegex ?? []))
+            searchTitleExtractionChanges.cleanupRegex = cleanupRegexVal
+        if (Object.entries(searchTitleExtractionChanges).every(val => val[1] === undefined)) searchTitleExtractionChanges = undefined
+        changes.searchTitleExtraction = searchTitleExtractionChanges
+
+        if (patch.failedMatchCollectionName != current?.failedMatchCollectionName)
+            changes.failedMatchCollectionName = patch.failedMatchCollectionName
+
+        let chineseConversionChanges: NonNullable<MetadataProcessingConfigUpdateDto['chineseConversion']> | undefined = {}
+        let curCc = current?.chineseConversion
+        if (patch.chineseConversion.enabled != curCc?.enabled)
+            chineseConversionChanges.enabled = patch.chineseConversion.enabled
+        if (patch.chineseConversion.direction != curCc?.direction)
+            chineseConversionChanges.direction = patch.chineseConversion.direction
+        if (patch.chineseConversion.search != curCc?.search)
+            chineseConversionChanges.search = patch.chineseConversion.search
+        if (patch.chineseConversion.matching != curCc?.matching)
+            chineseConversionChanges.matching = patch.chineseConversion.matching
+        let ccUpdateChanges: { enabled?: boolean, fields?: string[] } = {}
+        if (patch.chineseConversion.update.enabled != curCc?.update.enabled)
+            ccUpdateChanges.enabled = patch.chineseConversion.update.enabled
+        let ccFieldsVal = toArray(patch.chineseConversion.update.fields)
+        if (!equalArrays(ccFieldsVal, curCc?.update.fields ?? []))
+            ccUpdateChanges.fields = ccFieldsVal
+        if (Object.entries(ccUpdateChanges).length != 0)
+            chineseConversionChanges.update = ccUpdateChanges
+        if (Object.entries(chineseConversionChanges).every(val => val[1] === undefined)) chineseConversionChanges = undefined
+        changes.chineseConversion = chineseConversionChanges
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
         else return changes
@@ -464,28 +572,27 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         if (patch.enabled != current.enabled)
             changes.enabled = patch.enabled
 
-        if (patch.libraries.length == 0 && current.libraries.length != 0) {
-            changes.libraries = []
-        } else if (patch.libraries.length != 0 && !patch.libraries.every((v, i) => v === current.libraries[i])) {
-            changes.libraries = patch.libraries
+        if (patch.metadataLibraryFilter.length == 0 && current.metadataLibraryFilter.length != 0) {
+            changes.metadataLibraryFilter = []
+        } else if (patch.metadataLibraryFilter.length != 0 && !patch.metadataLibraryFilter.every((v, i) => v === current.metadataLibraryFilter[i])) {
+            changes.metadataLibraryFilter = patch.metadataLibraryFilter
         }
+
+        let currentExclude = Array.isArray(current.metadataSeriesExcludeFilter) ? current.metadataSeriesExcludeFilter : []
+        let excludeVal = toArray(patch.metadataSeriesExcludeFilter)
+        if (!equalArrays(excludeVal, currentExclude))
+            changes.metadataSeriesExcludeFilter = excludeVal
+        let currentNotify = Array.isArray(current.notificationsLibraryFilter) ? current.notificationsLibraryFilter : []
+        let notifyVal = toArray(patch.notificationsLibraryFilter)
+        if (!equalArrays(notifyVal, currentNotify))
+            changes.notificationsLibraryFilter = notifyVal
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
         else return changes
     }
 
-    function getNotificationsUpdates(
-        current: NotificationConfigDto,
-        patch: NotificationConfigDto
-    ): NotificationConfigUpdateDto | undefined {
-        if (patch.libraries.length == 0 && current.libraries.length != 0) {
-            return { libraries: [] }
-        } else if (patch.libraries.length != 0 && !patch.libraries.every((v, i) => v === current.libraries[i])) {
-            return patch as NotificationConfigUpdateDto
-        } else return undefined
-    }
 
-    function getDiscordUpdates(currentConfig: DiscordConfigDto): DiscordConfigUpdateDto | undefined {
+    function getDiscordUpdates(currentConfig: DiscordConfigDto | undefined): DiscordConfigUpdateDto | undefined {
         let changes: DiscordConfigUpdateDto = {}
         if (notifications.seriesCover != currentConfig?.seriesCover)
             changes.seriesCover = notifications.seriesCover
@@ -515,6 +622,14 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.malClientId = metadataProviders.malClientId
         if (!metadataProviders.comicVineClientIdDisabled)
             changes.comicVineClientId = metadataProviders.comicVineClientId
+        if (!metadataProviders.bangumiTokenDisabled && metadataProviders.bangumiToken != currentProvidersConfig?.bangumiToken)
+            changes.bangumiToken = metadataProviders.bangumiToken
+        if (metadataProviders.comicVineSearchLimit != currentProvidersConfig?.comicVineSearchLimit)
+            changes.comicVineSearchLimit = metadataProviders.comicVineSearchLimit
+        if (metadataProviders.comicVineIssueName != currentProvidersConfig?.comicVineIssueName)
+            changes.comicVineIssueName = metadataProviders.comicVineIssueName
+        if (metadataProviders.comicVineIdFormat != currentProvidersConfig?.comicVineIdFormat)
+            changes.comicVineIdFormat = metadataProviders.comicVineIdFormat
         if (metadataProviders.nameMatchingMode != currentProvidersConfig?.nameMatchingMode)
             changes.nameMatchingMode = metadataProviders.nameMatchingMode
 
@@ -570,7 +685,7 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                     changes.nautiljon = getProviderUpdates(current?.nautiljon, value)
                     break
                 case 'aniList':
-                    changes.aniList = getProviderUpdates(current?.aniList, value)
+                    changes.aniList = getAniListUpdates(current?.aniList, value)
                     break
                 case 'yenPress':
                     changes.yenPress = getProviderUpdates(current?.yenPress, value)
@@ -578,20 +693,29 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                 case 'kodansha':
                     changes.kodansha = getProviderUpdates(current?.kodansha, value)
                     break
+                case 'mangaBaka':
+                    changes.mangaBaka = getProviderUpdates(current?.mangaBaka, value)
+                    break
                 case 'viz':
                     changes.viz = getProviderUpdates(current?.viz, value)
                     break
                 case 'bookWalker':
-                    changes.bookWalker = getProviderUpdates(current?.bookWalker, value as ProviderConfigDto)
+                    changes.bookWalker = getProviderUpdates(current?.bookWalker, value)
                     break
                 case 'mangaDex':
-                    changes.mangaDex = getProviderUpdates(current?.mangaDex, value as ProviderConfigDto)
+                    changes.mangaDex = getMangaDexUpdates(current?.mangaDex, value)
                     break
                 case 'bangumi':
-                    changes.bangumi = getProviderUpdates(current?.bangumi, value as ProviderConfigDto)
+                    changes.bangumi = getBangumiUpdates(current?.bangumi, value)
                     break
                 case 'comicVine':
-                    changes.comicVine = getProviderUpdates(current?.comicVine, value as ProviderConfigDto)
+                    changes.comicVine = getProviderUpdates(current?.comicVine, value)
+                    break
+                case 'webtoons':
+                    changes.webtoons = getProviderUpdates(current?.webtoons, value)
+                    break
+                case 'eHentai':
+                    changes.eHentai = getEhentaiUpdates(current?.eHentai, value)
                     break
                 default:
                     return undefined
@@ -621,6 +745,76 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.mediaType = updated.mediaType
         changes.seriesMetadata = getSeriesMetadataUpdates(current?.seriesMetadata, updated.seriesMetadata)
         changes.bookMetadata = getBookMetadataUpdates(current?.bookMetadata, updated.bookMetadata)
+
+        if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
+        else return changes
+    }
+
+    function getEhentaiUpdates(
+        current: ProviderConfigDto | undefined,
+        updated: ProviderConfigDto
+    ): ProviderConfigUpdateDto | undefined {
+        let changes = getProviderUpdates(current, updated) || {}
+        let preferredLanguages = toArray(updated.preferredLanguages)
+        if (!equalArrays(preferredLanguages, current?.preferredLanguages ?? []))
+            changes.preferredLanguages = preferredLanguages
+        if (updated.titlePriority != current?.titlePriority)
+            changes.titlePriority = updated.titlePriority
+        let translatorKeywords = toArray(updated.translatorKeywords)
+        if (!equalArrays(translatorKeywords, current?.translatorKeywords ?? []))
+            changes.translatorKeywords = translatorKeywords
+        if (updated.maleOnlyTagsFile != current?.maleOnlyTagsFile)
+            changes.maleOnlyTagsFile = updated.maleOnlyTagsFile
+        if (updated.titleTemplate != current?.titleTemplate)
+            changes.titleTemplate = updated.titleTemplate
+        if (updated.searchDomain != current?.searchDomain)
+            changes.searchDomain = updated.searchDomain
+        if (updated.ipbMemberId != current?.ipbMemberId)
+            changes.ipbMemberId = updated.ipbMemberId
+        if (updated.ipbPassHash != current?.ipbPassHash)
+            changes.ipbPassHash = updated.ipbPassHash
+
+        if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
+        else return changes
+    }
+
+    function getAniListUpdates(
+        current: ProviderConfigDto | undefined,
+        updated: ProviderConfigDto
+    ): ProviderConfigUpdateDto | undefined {
+        let changes = getProviderUpdates(current, updated) || {}
+        if (updated.tagsScoreThreshold != current?.tagsScoreThreshold)
+            changes.tagsScoreThreshold = updated.tagsScoreThreshold
+        if (updated.tagsSizeLimit != current?.tagsSizeLimit)
+            changes.tagsSizeLimit = updated.tagsSizeLimit
+
+        if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
+        else return changes
+    }
+
+    function getMangaDexUpdates(
+        current: ProviderConfigDto | undefined,
+        updated: ProviderConfigDto
+    ): ProviderConfigUpdateDto | undefined {
+        let changes = getProviderUpdates(current, updated) || {}
+        let coverLanguages = toArray(updated.coverLanguages)
+        if (!equalArrays(coverLanguages, current?.coverLanguages ?? []))
+            changes.coverLanguages = coverLanguages
+
+        if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
+        else return changes
+    }
+
+    function getBangumiUpdates(
+        current: ProviderConfigDto | undefined,
+        updated: ProviderConfigDto
+    ): ProviderConfigUpdateDto | undefined {
+        let changes = getProviderUpdates(current, updated) || {}
+        let tagWhitelist = toArray(updated.tagWhitelist)
+        if (!equalArrays(tagWhitelist, current?.tagWhitelist ?? []))
+            changes.tagWhitelist = tagWhitelist
+        if (updated.tagWhitelistFile != current?.tagWhitelistFile)
+            changes.tagWhitelistFile = updated.tagWhitelistFile
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
         else return changes
@@ -765,9 +959,35 @@ export interface ProcessingUpdateModel {
     bookCovers: boolean,
     seriesCovers: boolean,
     overrideExistingCovers: boolean,
+    lockCovers: boolean,
+    overrideComicInfo: boolean,
+    fallbackToAltTitle: boolean,
     orderBooks: boolean,
     readingDirectionValue?: null | string,
     languageValue?: null | string,
+    scoreTagName?: null | string,
+    originalPublisherTagName?: null | string,
+    publisherTagNames: any,
+    alternateTitleLabels: { romaji: string | null, native: string | null, localized: string | null },
+    linksSkipEnabled: boolean,
+    linksMatchEnabled: boolean,
+    searchTitleExtraction: {
+        enabled: boolean,
+        bracketRegex: string | null,
+        authorSeparator: string | null,
+        titleSplitters: any,
+        symbolNormalizeRegex: string | null,
+        charMappings: any,
+        cleanupRegex: any
+    },
+    failedMatchCollectionName: string | null,
+    chineseConversion: {
+        enabled: boolean,
+        direction: string,
+        search: boolean,
+        matching: boolean,
+        update: { enabled: boolean, fields: any }
+    }
 }
 
 export interface ProcessingLibraryUpdateModel extends ProcessingUpdateModel {

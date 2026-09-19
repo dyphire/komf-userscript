@@ -6,10 +6,23 @@
 
     <q-card-section horizontal class="card-border">
       <div class="full-width" style="padding: 0">
-        <q-img
-          :src="item.imageUrl" ratio="0.7071"
-          referrerpolicy="no-referrer"
-        />
+        <div class="identify-card-cover" style="position: relative">
+          <q-img
+            :src="item.imageUrl" ratio="0.7071"
+            referrerpolicy="no-referrer"
+          />
+          <div v-if="item.language || item.mediaType"
+               style="position: absolute; top: 4px; right: 4px; z-index: 2; display: flex; flex-direction: column; gap: 4px; align-items: flex-end">
+            <span v-if="item.language"
+                  style="background: rgba(0,0,0,0.72); color: #fff; font-size: 11px; line-height: 1; padding: 3px 5px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px">
+              {{ item.language }}
+            </span>
+            <span v-if="item.mediaType"
+                  style="background: rgba(0,0,0,0.72); color: #fff; font-size: 11px; line-height: 1; padding: 3px 5px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px">
+              {{ item.mediaType }}
+            </span>
+          </div>
+        </div>
 
         <q-card-section class="full-width">
           <div class="text-center ellipsis-2-lines" style="max-height:42px;height:42px">

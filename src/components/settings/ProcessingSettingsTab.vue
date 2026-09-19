@@ -190,6 +190,230 @@
           </div>
         </div>
 
+        <div class="col-auto">
+          <q-checkbox v-model="model.default.lockCovers" label="Lock Covers" />
+        </div>
+
+        <div class="col-auto">
+          <q-checkbox v-model="model.default.overrideComicInfo" label="Override ComicInfo" />
+        </div>
+
+        <div class="col-auto">
+          <q-checkbox v-model="model.default.fallbackToAltTitle" label="Fallback to Alt Title" />
+        </div>
+
+        <div class="col-auto">
+          <q-checkbox v-model="model.default.linksSkipEnabled" label="Links Skip Enabled" />
+        </div>
+
+        <div class="col-auto">
+          <q-checkbox v-model="model.default.linksMatchEnabled" label="Links Match Enabled" />
+        </div>
+
+        <div class="col-auto">
+          <q-input
+            v-model="model.default.scoreTagName"
+            label="Score Tag Name"
+            dense
+            filled
+            clearable
+            hint="e.g. score:"
+          />
+        </div>
+
+        <div class="col-auto">
+          <q-input
+            v-model="model.default.originalPublisherTagName"
+            label="Original Publisher Tag Name"
+            dense
+            filled
+            clearable
+          />
+        </div>
+
+        <div class="col-auto">
+          <div class="text-body2 q-pb-xs">Publisher Tag Names</div>
+          <div v-for="(pt, i) in model.default.publisherTagNames" :key="i" class="row q-px-sm q-pb-xs items-start">
+            <q-input v-model="pt.tagName" label="Tag" dense filled class="col" />
+            <q-input v-model="pt.language" label="Language" dense filled class="col" hint="BCP-47 e.g. en, zh" />
+            <q-btn flat round icon="mdi-delete" size="sm" class="q-mt-sm" @click="model.default.publisherTagNames.splice(i, 1)" />
+          </div>
+          <q-btn flat round icon="mdi-plus" size="sm" label="Add" @click="model.default.publisherTagNames.push({ tagName: '', language: '' })" />
+        </div>
+
+        <div class="col-auto">
+          <q-input
+            v-model="model.default.alternateTitleLabels.romaji"
+            label="Alt Title Label (Romaji)"
+            dense
+            filled
+            clearable
+            hint="Empty = default Romaji"
+          />
+        </div>
+
+        <div class="col-auto">
+          <q-input
+            v-model="model.default.alternateTitleLabels.native"
+            label="Alt Title Label (Native)"
+            dense
+            filled
+            clearable
+            hint="Empty = default Native"
+          />
+        </div>
+
+        <div class="col-auto">
+          <q-input
+            v-model="model.default.alternateTitleLabels.localized"
+            label="Alt Title Label (Localized)"
+            dense
+            filled
+            clearable
+            hint="Empty = default Localized"
+          />
+        </div>
+
+        <div class="col-auto">
+          <q-input
+            v-model="model.default.failedMatchCollectionName"
+            label="Failed Match Collection Name"
+            dense
+            filled
+            clearable
+            hint="Auto-Identify Library failed series collection"
+          />
+        </div>
+
+        <div class="col-12" style="padding: 8px 0 0 0">
+          <q-expansion-item
+            dense
+            dense-toggle
+            expand-separator
+            label="Search Title Extraction"
+          >
+            <div class="row q-col-gutter-sm">
+              <div class="col-auto" style="width: 200px">
+                <q-checkbox v-model="model.default.searchTitleExtraction.enabled" label="Enabled" />
+              </div>
+              <div class="col-auto" style="width: 200px">
+                <q-input
+                  v-model="model.default.searchTitleExtraction.bracketRegex"
+                  label="Bracket Regex"
+                  dense
+                  filled
+                  clearable
+                />
+              </div>
+            </div>
+            <div class="row q-col-gutter-sm">
+              <div class="col-auto" style="width: 200px">
+                <q-input
+                  v-model="model.default.searchTitleExtraction.authorSeparator"
+                  label="Author Separator"
+                  dense
+                  filled
+                  clearable
+                />
+              </div>
+              <div class="col-auto" style="width: 200px">
+                <q-input
+                  v-model="model.default.searchTitleExtraction.symbolNormalizeRegex"
+                  label="Symbol Normalize Regex"
+                  dense
+                  filled
+                  clearable
+                />
+              </div>
+            </div>
+            <div class="row q-col-gutter-sm">
+              <div class="col-auto" style="width: 200px">
+                <q-input
+                  v-model="model.default.searchTitleExtraction.titleSplitters"
+                  label="Title Splitters"
+                  dense
+                  filled
+                  clearable
+                  hint="Comma-separated"
+                  hide-hint
+                />
+              </div>
+              <div class="col-auto" style="width: 200px">
+                <q-input
+                  v-model="model.default.searchTitleExtraction.charMappings"
+                  label="Char Mappings"
+                  dense
+                  filled
+                  clearable
+                  hint='JSON array, e.g. [["／","/"]]'
+                  hide-hint
+                />
+              </div>
+            </div>
+            <div class="row q-col-gutter-sm">
+              <div class="col-auto" style="width: 200px">
+                <q-input
+                  v-model="model.default.searchTitleExtraction.cleanupRegex"
+                  label="Cleanup Regex"
+                  dense
+                  filled
+                  clearable
+                  hint="Comma-separated regexes"
+                  hide-hint
+                />
+              </div>
+            </div>
+          </q-expansion-item>
+        </div>
+
+        <div class="col-12" style="padding: 8px 0 16px 0">
+          <q-expansion-item
+            dense
+            dense-toggle
+            expand-separator
+            label="Chinese Conversion"
+          >
+            <div class="row q-col-gutter-sm">
+              <div class="col-auto" style="width: 200px">
+                <q-checkbox v-model="model.default.chineseConversion.enabled" label="Enabled" />
+              </div>
+              <div class="col-auto" style="width: 200px">
+                <q-select
+                  v-model="model.default.chineseConversion.direction"
+                  :options="['t2s', 's2t']"
+                  label="Direction"
+                  dense
+                  filled
+                />
+              </div>
+            </div>
+            <div class="row q-col-gutter-sm">
+              <div class="col-auto" style="width: 200px">
+                <q-checkbox v-model="model.default.chineseConversion.search" label="Search" />
+              </div>
+              <div class="col-auto" style="width: 200px">
+                <q-checkbox v-model="model.default.chineseConversion.matching" label="Matching" />
+              </div>
+            </div>
+            <div class="row q-col-gutter-sm">
+              <div class="col-auto" style="width: 200px">
+                <q-checkbox v-model="model.default.chineseConversion.update.enabled" label="Update Enabled" />
+              </div>
+              <div class="col-auto" style="width: 200px">
+                <q-input
+                  v-model="model.default.chineseConversion.update.fields"
+                  label="Update Fields"
+                  dense
+                  filled
+                  clearable
+                  hint="Comma-separated: title, genres, tags, summary"
+                  hide-hint
+                />
+              </div>
+            </div>
+          </q-expansion-item>
+        </div>
+
       </div>
     </q-tab-panel>
 
@@ -334,6 +558,230 @@
             </div>
           </div>
 
+          <div class="col-auto">
+            <q-checkbox v-model="model.library[libraryIndex].lockCovers" label="Lock Covers" />
+          </div>
+
+          <div class="col-auto">
+            <q-checkbox v-model="model.library[libraryIndex].overrideComicInfo" label="Override ComicInfo" />
+          </div>
+
+          <div class="col-auto">
+            <q-checkbox v-model="model.library[libraryIndex].fallbackToAltTitle" label="Fallback to Alt Title" />
+          </div>
+
+          <div class="col-auto">
+            <q-checkbox v-model="model.library[libraryIndex].linksSkipEnabled" label="Links Skip Enabled" />
+          </div>
+
+          <div class="col-auto">
+            <q-checkbox v-model="model.library[libraryIndex].linksMatchEnabled" label="Links Match Enabled" />
+          </div>
+
+          <div class="col-auto">
+            <q-input
+              v-model="model.library[libraryIndex].scoreTagName"
+              label="Score Tag Name"
+              dense
+              filled
+              clearable
+              hint="e.g. score:"
+            />
+          </div>
+
+          <div class="col-auto">
+            <q-input
+              v-model="model.library[libraryIndex].originalPublisherTagName"
+              label="Original Publisher Tag Name"
+              dense
+              filled
+              clearable
+            />
+          </div>
+
+          <div class="col-auto">
+            <div class="text-body2 q-pb-xs">Publisher Tag Names</div>
+            <div v-for="(pt, i) in model.library[libraryIndex].publisherTagNames" :key="i" class="row q-px-sm q-pb-xs items-start">
+              <q-input v-model="pt.tagName" label="Tag" dense filled class="col" />
+              <q-input v-model="pt.language" label="Language" dense filled class="col" hint="BCP-47 e.g. en, zh" />
+              <q-btn flat round icon="mdi-delete" size="sm" class="q-mt-sm" @click="model.library[libraryIndex].publisherTagNames.splice(i, 1)" />
+            </div>
+            <q-btn flat round icon="mdi-plus" size="sm" label="Add" @click="model.library[libraryIndex].publisherTagNames.push({ tagName: '', language: '' })" />
+          </div>
+
+          <div class="col-auto">
+            <q-input
+              v-model="model.library[libraryIndex].alternateTitleLabels.romaji"
+              label="Alt Title Label (Romaji)"
+              dense
+              filled
+              clearable
+              hint="Empty = default Romaji"
+            />
+          </div>
+
+          <div class="col-auto">
+            <q-input
+              v-model="model.library[libraryIndex].alternateTitleLabels.native"
+              label="Alt Title Label (Native)"
+              dense
+              filled
+              clearable
+              hint="Empty = default Native"
+            />
+          </div>
+
+          <div class="col-auto">
+            <q-input
+              v-model="model.library[libraryIndex].alternateTitleLabels.localized"
+              label="Alt Title Label (Localized)"
+              dense
+              filled
+              clearable
+              hint="Empty = default Localized"
+            />
+          </div>
+
+          <div class="col-auto">
+            <q-input
+              v-model="model.library[libraryIndex].failedMatchCollectionName"
+              label="Failed Match Collection Name"
+              dense
+              filled
+              clearable
+              hint="Auto-Identify Library failed series collection"
+            />
+          </div>
+
+          <div class="col-12" style="padding: 8px 0 0 0">
+            <q-expansion-item
+              dense
+              dense-toggle
+              expand-separator
+              label="Search Title Extraction"
+            >
+              <div class="row q-col-gutter-sm">
+                <div class="col-auto" style="width: 200px">
+                  <q-checkbox v-model="model.library[libraryIndex].searchTitleExtraction.enabled" label="Enabled" />
+                </div>
+                <div class="col-auto" style="width: 200px">
+                  <q-input
+                    v-model="model.library[libraryIndex].searchTitleExtraction.bracketRegex"
+                    label="Bracket Regex"
+                    dense
+                    filled
+                    clearable
+                  />
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm">
+                <div class="col-auto" style="width: 200px">
+                  <q-input
+                    v-model="model.library[libraryIndex].searchTitleExtraction.authorSeparator"
+                    label="Author Separator"
+                    dense
+                    filled
+                    clearable
+                  />
+                </div>
+                <div class="col-auto" style="width: 200px">
+                  <q-input
+                    v-model="model.library[libraryIndex].searchTitleExtraction.symbolNormalizeRegex"
+                    label="Symbol Normalize Regex"
+                    dense
+                    filled
+                    clearable
+                  />
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm">
+                <div class="col-auto" style="width: 200px">
+                  <q-input
+                    v-model="model.library[libraryIndex].searchTitleExtraction.titleSplitters"
+                    label="Title Splitters"
+                    dense
+                    filled
+                    clearable
+                    hint="Comma-separated"
+                    hide-hint
+                  />
+                </div>
+                <div class="col-auto" style="width: 200px">
+                  <q-input
+                    v-model="model.library[libraryIndex].searchTitleExtraction.charMappings"
+                    label="Char Mappings"
+                    dense
+                    filled
+                    clearable
+                    hint='JSON array, e.g. [["／","/"]]'
+                    hide-hint
+                  />
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm">
+                <div class="col-auto" style="width: 200px">
+                  <q-input
+                    v-model="model.library[libraryIndex].searchTitleExtraction.cleanupRegex"
+                    label="Cleanup Regex"
+                    dense
+                    filled
+                    clearable
+                    hint="Comma-separated regexes"
+                    hide-hint
+                  />
+                </div>
+              </div>
+            </q-expansion-item>
+          </div>
+
+          <div class="col-12" style="padding: 8px 0 16px 0">
+            <q-expansion-item
+              dense
+              dense-toggle
+              expand-separator
+              label="Chinese Conversion"
+            >
+              <div class="row q-col-gutter-sm">
+                <div class="col-auto" style="width: 200px">
+                  <q-checkbox v-model="model.library[libraryIndex].chineseConversion.enabled" label="Enabled" />
+                </div>
+                <div class="col-auto" style="width: 200px">
+                  <q-select
+                    v-model="model.library[libraryIndex].chineseConversion.direction"
+                    :options="['t2s', 's2t']"
+                    label="Direction"
+                    dense
+                    filled
+                  />
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm">
+                <div class="col-auto" style="width: 200px">
+                  <q-checkbox v-model="model.library[libraryIndex].chineseConversion.search" label="Search" />
+                </div>
+                <div class="col-auto" style="width: 200px">
+                  <q-checkbox v-model="model.library[libraryIndex].chineseConversion.matching" label="Matching" />
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm">
+                <div class="col-auto" style="width: 200px">
+                  <q-checkbox v-model="model.library[libraryIndex].chineseConversion.update.enabled" label="Update Enabled" />
+                </div>
+                <div class="col-auto" style="width: 200px">
+                  <q-input
+                    v-model="model.library[libraryIndex].chineseConversion.update.fields"
+                    label="Update Fields"
+                    dense
+                    filled
+                    clearable
+                    hint="Comma-separated: title, genres, tags, summary"
+                    hide-hint
+                  />
+                </div>
+              </div>
+            </q-expansion-item>
+          </div>
+
         </div>
       </q-tab-panel>
     </template>
@@ -345,7 +793,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useConfigUpdateStore } from '@/stores/configUpdate'
 import { isLangCode } from 'is-language-code'
 import MediaServer from '@/types/mediaServer'
-import { QInput, QSelect, QTabPanels } from 'quasar'
+import { QInput, QSelect, QTabPanels, QExpansionItem } from 'quasar'
 import { computed, nextTick, ref } from 'vue'
 
 const settings = useSettingsStore()
@@ -384,13 +832,39 @@ async function addLibrary(id: string) {
         bookCovers: false,
         seriesCovers: false,
         overrideExistingCovers: true,
+        lockCovers: true,
+        overrideComicInfo: false,
         seriesTitle: false,
         seriesTitleLanguage: 'en',
         alternativeTitles: false,
         alternativeTitleLanguages: ['en', 'ja', 'ja-ro'],
+        fallbackToAltTitle: false,
         orderBooks: false,
         readingDirectionValue: null,
-        languageValue: null
+        languageValue: null,
+        scoreTagName: null,
+        originalPublisherTagName: null,
+        publisherTagNames: [],
+        alternateTitleLabels: { romaji: null, native: null, localized: null },
+        linksSkipEnabled: true,
+        linksMatchEnabled: true,
+        searchTitleExtraction: {
+            enabled: false,
+            bracketRegex: null,
+            authorSeparator: null,
+            titleSplitters: [],
+            symbolNormalizeRegex: "[:：•·․,，。'’?？!！~⁓～]",
+            charMappings: [],
+            cleanupRegex: []
+        },
+        failedMatchCollectionName: null,
+        chineseConversion: {
+            enabled: false,
+            direction: 't2s',
+            search: true,
+            matching: true,
+            update: { enabled: true, fields: ['title'] }
+        }
     })
 
     await nextTick()

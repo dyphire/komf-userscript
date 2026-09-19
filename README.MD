@@ -1,4 +1,4 @@
-# [Komf](https://github.com/Snd-R/komf) user script for Komga and Kavita
+# [Komf](https://github.com/dyphire/komf) user script for Komga and Kavita
 
 Adds komf integration to Komga and Kavita ui.
 

@@ -1,14 +1,25 @@
+﻿export interface PublisherTagNameDto {
+    tagName: string,
+    language: string,
+}
+
 export interface KomfConfigUpdateDto {
     komga?: KomgaConfigUpdateDto,
     kavita?: KavitaConfigUpdateDto,
-    discord?: DiscordConfigUpdateDto,
+    notifications?: TopLevelNotificationsUpdateDto,
     metadataProviders?: MetadataProvidersConfigUpdateDto
+}
+
+export interface TopLevelNotificationsUpdateDto {
+    discord?: DiscordConfigUpdateDto,
+    apprise?: AppriseConfigUpdateDto,
 }
 
 export interface KomgaConfigUpdateDto {
     baseUri?: string,
     komgaUser?: string,
     komgaPassword?: string,
+    apiKey?: string,
     eventListener?: EventListenerConfigUpdateDto,
     notifications?: NotificationConfigUpdateDto,
     metadataUpdate?: MetadataUpdateConfigUpdateDto,
@@ -20,7 +31,6 @@ export interface KavitaConfigUpdateDto {
     eventListener?: EventListenerConfigUpdateDto,
     notifications?: NotificationConfigUpdateDto,
     metadataUpdate?: MetadataUpdateConfigUpdateDto,
-    aggregateMetadata?: boolean,
 }
 
 export interface DiscordConfigUpdateDto {
@@ -28,10 +38,16 @@ export interface DiscordConfigUpdateDto {
     seriesCover?: boolean,
 }
 
+export interface AppriseConfigUpdateDto {
+    urls?: Record<number, (string | null)>,
+    seriesCover?: boolean,
+}
+
 export interface EventListenerConfigUpdateDto {
     enabled?: boolean,
-    libraries?: string[]
-
+    metadataLibraryFilter?: string[],
+    metadataSeriesExcludeFilter?: string[],
+    notificationsLibraryFilter?: string[]
 }
 
 export interface NotificationConfigUpdateDto {
@@ -51,8 +67,42 @@ export interface MetadataProcessingConfigUpdateDto {
     bookCovers?: boolean,
     seriesCovers?: boolean,
     overrideExistingCovers?: boolean,
+    lockCovers?: boolean,
+    overrideComicInfo?: boolean,
     updateModes?: string[],
-    postProcessing?: MetadataPostProcessingConfigUpdateDto
+    postProcessing?: MetadataPostProcessingConfigUpdateDto,
+    searchTitleExtraction?: SearchTitleExtractionConfigUpdateDto,
+    failedMatchCollectionName?: string | null,
+    chineseConversion?: ChineseConversionConfigUpdateDto
+}
+
+export interface SearchTitleExtractionConfigUpdateDto {
+    enabled?: boolean,
+    bracketRegex?: string | null,
+    authorSeparator?: string | null,
+    titleSplitters?: string[],
+    symbolNormalizeRegex?: string | null,
+    charMappings?: string[][],
+    cleanupRegex?: string[]
+}
+
+export interface ChineseConversionUpdateFields {
+    enabled?: boolean,
+    fields?: string[]
+}
+
+export interface ChineseConversionConfigUpdateDto {
+    enabled?: boolean,
+    direction?: string,
+    search?: boolean,
+    matching?: boolean,
+    update?: ChineseConversionUpdateFields
+}
+
+export interface AlternateTitleLabelsUpdateDto {
+    romaji?: string | null,
+    native?: string | null,
+    localized?: string | null
 }
 
 export interface MetadataPostProcessingConfigUpdateDto {
@@ -61,13 +111,24 @@ export interface MetadataPostProcessingConfigUpdateDto {
     orderBooks?: boolean,
     alternativeSeriesTitles?: boolean,
     alternativeSeriesTitleLanguages?: string[],
+    fallbackToAltTitle?: boolean,
     readingDirectionValue?: string | null,
     languageValue?: string | null,
+    scoreTagName?: string | null,
+    originalPublisherTagName?: string | null,
+    publisherTagNames?: PublisherTagNameDto[],
+    alternateTitleLabels?: AlternateTitleLabelsUpdateDto,
+    linksSkipEnabled?: boolean,
+    linksMatchEnabled?: boolean
 }
 
 export interface MetadataProvidersConfigUpdateDto {
     malClientId?: string,
     comicVineClientId?: string,
+    bangumiToken?: string,
+    comicVineSearchLimit?: number | null,
+    comicVineIssueName?: string | null,
+    comicVineIdFormat?: string | null,
     nameMatchingMode?: string,
     defaultProviders?: ProvidersConfigUpdateDto,
     libraryProviders?: Record<string, ProvidersConfigUpdateDto>,
@@ -85,6 +146,9 @@ export interface ProvidersConfigUpdateDto {
     mangaDex?: ProviderConfigUpdateDto,
     bangumi?: ProviderConfigUpdateDto,
     comicVine?: ProviderConfigUpdateDto,
+    mangaBaka?: ProviderConfigUpdateDto,
+    webtoons?: ProviderConfigUpdateDto,
+    eHentai?: ProviderConfigUpdateDto,
 }
 
 export interface ProviderConfigUpdateDto {
@@ -96,6 +160,27 @@ export interface ProviderConfigUpdateDto {
     enabled?: boolean,
     seriesMetadata?: SeriesMetadataConfigUpdateDto,
     bookMetadata?: BookMetadataConfigUpdateDto,
+    // eHentai specific
+    preferredLanguages?: any,
+    titlePriority?: string,
+    translatorKeywords?: any,
+    maleOnlyTagsFile?: string | null,
+    titleTemplate?: string,
+    searchDomain?: string,
+    ipbMemberId?: string | null,
+    ipbPassHash?: string | null,
+    // bangumi specific
+    tagWhitelist?: any,
+    tagWhitelistFile?: string | null,
+    // mangaDex specific
+    coverLanguages?: any,
+    // aniList specific
+    tagsScoreThreshold?: number,
+    tagsSizeLimit?: number,
+    // mangaBaka specific
+    mode?: string,
+    // mangaDex specific
+    links?: string[],
 }
 
 export interface SeriesMetadataConfigUpdateDto {
@@ -133,16 +218,23 @@ export interface BookMetadataConfigUpdateDto {
     thumbnail?: boolean,
 }
 
+export interface KomfNotificationsDto {
+    discord: DiscordConfigDto,
+    apprise: AppriseConfigDto,
+}
+
 export interface KomfConfigDto {
     komga: KomgaConfigDto,
     kavita: KavitaConfigDto,
-    discord: DiscordConfigDto,
+    notifications: KomfNotificationsDto,
     metadataProviders: MetadataProvidersConfigDto
 }
 
 export interface KomgaConfigDto {
     baseUri: string,
     komgaUser: string,
+    komgaPassword?: string,
+    apiKey?: string,
     eventListener: EventListenerConfigDto,
     notifications: NotificationConfigDto,
     metadataUpdate: MetadataUpdateConfigDto,
@@ -150,6 +242,7 @@ export interface KomgaConfigDto {
 
 export interface KavitaConfigDto {
     baseUri: string,
+    apiKey: string,
     eventListener: EventListenerConfigDto,
     notifications: NotificationConfigDto,
     metadataUpdate: MetadataUpdateConfigDto,
@@ -160,10 +253,16 @@ export interface DiscordConfigDto {
     seriesCover: boolean,
 }
 
+export interface AppriseConfigDto {
+    urls?: Record<number, string>,
+    seriesCover: boolean,
+}
+
 export interface EventListenerConfigDto {
     enabled: boolean,
-    libraries: string[]
-
+    metadataLibraryFilter: string[],
+    metadataSeriesExcludeFilter?: string[],
+    notificationsLibraryFilter?: string[]
 }
 
 export interface NotificationConfigDto {
@@ -175,6 +274,35 @@ export interface MetadataUpdateConfigDto {
     library: Record<string, MetadataProcessingConfigDto>
 }
 
+export interface SearchTitleExtractionConfigDto {
+    enabled: boolean,
+    bracketRegex: string | null,
+    authorSeparator: string | null,
+    titleSplitters: string[],
+    symbolNormalizeRegex: string | null,
+    charMappings: string[][],
+    cleanupRegex: string[]
+}
+
+export interface ChineseConversionUpdateConfigDto {
+    enabled: boolean,
+    fields: string[]
+}
+
+export interface ChineseConversionConfigDto {
+    enabled: boolean,
+    direction: string,
+    search: boolean,
+    matching: boolean,
+    update: ChineseConversionUpdateConfigDto
+}
+
+export interface AlternateTitleLabelsConfigDto {
+    romaji: string | null,
+    native: string | null,
+    localized: string | null
+}
+
 export interface MetadataProcessingConfigDto {
     libraryType: string,
     aggregate: boolean,
@@ -183,8 +311,13 @@ export interface MetadataProcessingConfigDto {
     bookCovers: boolean,
     seriesCovers: boolean,
     overrideExistingCovers: boolean,
+    lockCovers?: boolean,
+    overrideComicInfo?: boolean,
     updateModes: string[],
-    postProcessing: MetadataPostProcessingConfigDto
+    postProcessing: MetadataPostProcessingConfigDto,
+    searchTitleExtraction?: SearchTitleExtractionConfigDto,
+    failedMatchCollectionName?: string | null,
+    chineseConversion?: ChineseConversionConfigDto
 }
 
 export interface MetadataPostProcessingConfigDto {
@@ -193,13 +326,24 @@ export interface MetadataPostProcessingConfigDto {
     orderBooks: boolean,
     alternativeSeriesTitles: boolean,
     alternativeSeriesTitleLanguages: string[],
+    fallbackToAltTitle?: boolean,
     readingDirectionValue?: string,
     languageValue?: string,
+    scoreTagName?: string | null,
+    originalPublisherTagName?: string | null,
+    publisherTagNames?: PublisherTagNameDto[],
+    alternateTitleLabels?: AlternateTitleLabelsConfigDto,
+    linksSkipEnabled?: boolean,
+    linksMatchEnabled?: boolean
 }
 
 export interface MetadataProvidersConfigDto {
     malClientId: string,
     comicVineClientId?: string,
+    bangumiToken?: string,
+    comicVineSearchLimit?: number | null,
+    comicVineIssueName?: string | null,
+    comicVineIdFormat?: string | null,
     nameMatchingMode: string,
     defaultProviders: ProvidersConfigDto,
     libraryProviders: Record<string, ProvidersConfigDto>,
@@ -217,6 +361,9 @@ export interface ProvidersConfigDto {
     mangaDex: ProviderConfigDto,
     bangumi: ProviderConfigDto,
     comicVine: ProviderConfigDto,
+    mangaBaka?: ProviderConfigDto,
+    webtoons?: ProviderConfigDto,
+    eHentai?: ProviderConfigDto,
 }
 
 export interface ProviderConfigDto {
@@ -228,6 +375,21 @@ export interface ProviderConfigDto {
     enabled: boolean,
     seriesMetadata: SeriesMetadataConfigDto,
     bookMetadata: BookMetadataConfigDto,
+    preferredLanguages?: any,
+    titlePriority?: string,
+    translatorKeywords?: any,
+    maleOnlyTagsFile?: string | null,
+    titleTemplate?: string,
+    searchDomain?: string,
+    ipbMemberId?: string | null,
+    ipbPassHash?: string | null,
+    tagWhitelist?: any,
+    tagWhitelistFile?: string | null,
+    coverLanguages?: any,
+    tagsScoreThreshold?: number,
+    tagsSizeLimit?: number,
+    mode?: string,
+    links?: string[],
 }
 
 export interface SeriesMetadataConfigDto {
@@ -307,15 +469,39 @@ export class DefaultProviderConfig implements ProviderConfigDto {
 }
 
 export class DefaultProvidersConfig implements ProvidersConfigDto {
-    aniList: ProviderConfigDto = new DefaultProviderConfig()
+    aniList: ProviderConfigDto = {
+        ...new DefaultProviderConfig(),
+        tagsScoreThreshold: 60,
+        tagsSizeLimit: 15
+    }
     bookWalker: ProviderConfigDto = new DefaultProviderConfig()
     kodansha: ProviderConfigDto = new DefaultProviderConfig()
     mal: ProviderConfigDto = new DefaultProviderConfig
     mangaUpdates: ProviderConfigDto = new DefaultProviderConfig
+    mangaBaka: ProviderConfigDto = new DefaultProviderConfig()
     nautiljon: ProviderConfigDto = new DefaultProviderConfig
     viz: ProviderConfigDto = new DefaultProviderConfig
     yenPress: ProviderConfigDto = new DefaultProviderConfig
-    mangaDex: ProviderConfigDto = new DefaultProviderConfig
-    bangumi: ProviderConfigDto = new DefaultProviderConfig
-    comicVine: ProviderConfigDto = new DefaultProviderConfig
+    mangaDex: ProviderConfigDto = {
+        ...new DefaultProviderConfig(),
+        coverLanguages: ['en', 'ja']
+    }
+    bangumi: ProviderConfigDto = {
+        ...new DefaultProviderConfig(),
+        tagWhitelist: [],
+        tagWhitelistFile: null
+    }
+    comicVine: ProviderConfigDto = new DefaultProviderConfig()
+    webtoons: ProviderConfigDto = new DefaultProviderConfig()
+    eHentai: ProviderConfigDto = {
+        ...new DefaultProviderConfig(),
+        preferredLanguages: ['en', 'ja'],
+        titlePriority: 'jpn',
+        translatorKeywords: [],
+        maleOnlyTagsFile: null,
+        titleTemplate: '',
+        searchDomain: 'e-hentai',
+        ipbMemberId: null,
+        ipbPassHash: null
+    }
 }

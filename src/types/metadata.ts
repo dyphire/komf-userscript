@@ -3,6 +3,8 @@ export interface SearchResult {
     title: string,
     provider: string
     resultId: string,
+    language?: string,
+    mediaType?: string,
 }
 
 export interface IdentifyRequest {

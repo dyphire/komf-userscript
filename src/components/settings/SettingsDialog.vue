@@ -5,7 +5,7 @@
             allow-focus-outside
             :persistent="configUpdating"
   >
-    <div class="flex" style="max-width: 800px; width: 800px; max-height: 850px">
+    <div class="flex" style="max-width: min(900px, 95vw); width: 900px; max-height: 90vh; overflow-y: auto">
       <q-card class="q-dialog-plugin full-width">
         <q-card-section horizontal>
           <q-splitter

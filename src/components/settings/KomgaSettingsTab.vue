@@ -49,6 +49,29 @@
         </div>
       </div>
     </div>
+    <div class="col-auto" style="padding: 8px 0 0 0">
+      <div class="row">
+        <div class="col" style="padding: 0">
+          <q-input
+            v-model="config.apiKey"
+            label="API Key"
+            type="password"
+            filled
+            :disable="config.apiKeyDisabled"
+            hint="Optional, takes priority over user/password"
+          />
+        </div>
+        <div class="col-auto" v-if="config.apiKeyDisabled" style="padding: 0">
+          <q-btn
+            @click="config.apiKey=''; config.apiKeyDisabled = false"
+            flat
+            round
+            icon="mdi-pencil"
+            size="md"
+          />
+        </div>
+      </div>
+    </div>
     <span class="text-body2 q-pt-sm">Event Listener</span>
     <div class="col-auto">
 
@@ -58,7 +81,7 @@
     </div>
 
     <div class="col-auto">
-      <q-select
+        <q-select
         filled
         v-model="config.eventListener.libraries"
         multiple
@@ -67,6 +90,29 @@
         :option-label="libraryLabel"
         label="Listen Libraries"
         hint="will match all libraries if empty"
+      />
+    </div>
+
+    <div class="col-auto">
+      <q-input
+        filled
+        v-model="config.eventListener.metadataSeriesExcludeFilter"
+        clearable
+        label="Metadata Series Exclude Filter"
+        hint="Comma-separated series ids to exclude"
+      />
+    </div>
+
+    <div class="col-auto">
+      <q-select
+        filled
+        v-model="config.eventListener.notificationsLibraryFilter"
+        multiple
+        clearable
+        :options="configStore.libraries"
+        :option-label="libraryLabel"
+        label="Notifications Library Filter"
+        hint="will notify for all libraries if empty"
       />
     </div>
   </div>
