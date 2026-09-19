@@ -337,6 +337,32 @@
                                     dense
                                     filled
                                   />
+                                  <q-toggle
+                                    v-model="config.defaultProviders[index].archive!.enabled"
+                                    label="Archive Offline"
+                                    dense
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].archive!.dir"
+                                    label="Archive Dir"
+                                    dense
+                                    filled
+                                    hint="Leave empty for default (workDir/bangumi-archive)"
+                                  />
+                                  <q-input
+                                    v-model.number="config.defaultProviders[index].archive!.updateIntervalHours"
+                                    label="Archive Update Interval (hours)"
+                                    dense
+                                    filled
+                                    type="number"
+                                  />
+                                  <q-input
+                                    v-model.number="config.defaultProviders[index].archive!.idleReleaseSecs"
+                                    label="Archive Idle Release (secs, 0=off)"
+                                    dense
+                                    filled
+                                    type="number"
+                                  />
                                 </div>
 
                                 <div v-if="element.name === 'mangaDex'" class="col-auto" style="padding: 8px 0 0 0">
@@ -817,6 +843,32 @@
                                   label="Tag Whitelist File"
                                   dense
                                   filled
+                                />
+                                <q-toggle
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].archive!.enabled"
+                                  label="Archive Offline"
+                                  dense
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].archive!.dir"
+                                  label="Archive Dir"
+                                  dense
+                                  filled
+                                  hint="Leave empty for default"
+                                />
+                                <q-input
+                                  v-model.number="config.libraryProviders[libraryIndex].providers[index].archive!.updateIntervalHours"
+                                  label="Archive Update Interval (hours)"
+                                  dense
+                                  filled
+                                  type="number"
+                                />
+                                <q-input
+                                  v-model.number="config.libraryProviders[libraryIndex].providers[index].archive!.idleReleaseSecs"
+                                  label="Archive Idle Release (secs, 0=off)"
+                                  dense
+                                  filled
+                                  type="number"
                                 />
                               </div>
 

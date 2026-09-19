@@ -217,14 +217,16 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             .map(([key, value]) => {
                 let books = providersWithBooks.includes(key)
                 let mediaType = providersWithMediaType.includes(key)
-                return { ...(value as ProviderConfigDto), name: key, books: books, mediaTypeEnabled: mediaType }
+                return { ...(value as ProviderConfigDto), name: key, books: books, mediaTypeEnabled: mediaType,
+                    ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}) }
             }).filter(provider => provider.enabled)
 
         metadataProviders.defaultDisabledProviders = Object.entries(config.metadataProviders.defaultProviders)
             .map(([key, value]) => {
                 let books = providersWithBooks.includes(key)
                 let mediaType = providersWithMediaType.includes(key)
-                return { ...(value as ProviderConfigDto), name: key, books: books, mediaTypeEnabled: mediaType }
+                return { ...(value as ProviderConfigDto), name: key, books: books, mediaTypeEnabled: mediaType,
+                    ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}) }
             }).filter(provider => !provider.enabled)
             .sort((a, b) => a.name.localeCompare(b.name))
 
@@ -243,13 +245,15 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                                 ...value as ProviderConfigDto,
                                 name: key,
                                 books: books,
-                                mediaTypeEnabled: mediaType
+                                mediaTypeEnabled: mediaType,
+                                ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {})
                             }
                         }).filter(provider => provider.enabled),
                     disabledProviders: Object.entries(value as ProvidersConfigDto).map(([key, value]) => {
                         let books = providersWithBooks.includes(key)
                         let mediaType = providersWithMediaType.includes(key)
-                        return { ...value as ProviderConfigDto, name: key, books: books, mediaTypeEnabled: mediaType }
+                        return { ...value as ProviderConfigDto, name: key, books: books, mediaTypeEnabled: mediaType,
+                            ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}) }
                     }).filter(provider => !provider.enabled)
                         .sort((a, b) => a.name.localeCompare(b.name))
                 }
@@ -819,6 +823,18 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.tagWhitelist = tagWhitelist
         if (updated.tagWhitelistFile != current?.tagWhitelistFile)
             changes.tagWhitelistFile = updated.tagWhitelistFile
+
+        // bangumi archive offline data source
+        const curArch = current?.archive
+        const newArch = updated.archive
+        if (newArch) {
+            const archChanges: any = {}
+            if (newArch.enabled != curArch?.enabled) archChanges.enabled = newArch.enabled
+            if (newArch.dir != curArch?.dir) archChanges.dir = newArch.dir ?? null
+            if (newArch.updateIntervalHours != curArch?.updateIntervalHours) archChanges.updateIntervalHours = newArch.updateIntervalHours
+            if (newArch.idleReleaseSecs != curArch?.idleReleaseSecs) archChanges.idleReleaseSecs = newArch.idleReleaseSecs ?? null
+            if (Object.keys(archChanges).length > 0) changes.archive = archChanges
+        }
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
         else return changes

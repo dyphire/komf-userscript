@@ -174,6 +174,7 @@ export interface ProviderConfigUpdateDto {
     // bangumi specific
     tagWhitelist?: any,
     tagWhitelistFile?: string | null,
+    archive?: BangumiArchiveConfigDto,
     // mangaDex specific
     coverLanguages?: any,
     // aniList specific
@@ -368,6 +369,13 @@ export interface ProvidersConfigDto {
     eHentai?: ProviderConfigDto,
 }
 
+export interface BangumiArchiveConfigDto {
+    enabled: boolean,
+    dir?: string | null,
+    updateIntervalHours: number,
+    idleReleaseSecs?: number | null,
+}
+
 export interface ProviderConfigDto {
     mediaType: string,
     nameMatchingMode?: string,
@@ -389,6 +397,7 @@ export interface ProviderConfigDto {
     ipbPassHash?: string | null,
     tagWhitelist?: any,
     tagWhitelistFile?: string | null,
+    archive?: BangumiArchiveConfigDto,
     coverLanguages?: any,
     tagsScoreThreshold?: number,
     tagsSizeLimit?: number,
