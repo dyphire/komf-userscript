@@ -302,6 +302,10 @@
                                     filled
                                     hint="Custom tag translation JSON URL (empty = official release)"
                                   />
+                                  <q-checkbox
+                                    v-model="config.defaultProviders[index].gidOnlyMatch"
+                                    label="GID Only Match"
+                                  />
                                   <q-select
                                     v-model="config.defaultProviders[index].searchDomain"
                                     :options="['e-hentai', 'exhentai']"
@@ -808,6 +812,10 @@
                                   dense
                                   filled
                                   hint="Custom tag translation JSON URL (empty = official release)"
+                                />
+                                <q-checkbox
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].gidOnlyMatch"
+                                  label="GID Only Match"
                                 />
                                 <q-select
                                   v-model="config.libraryProviders[libraryIndex].providers[index].searchDomain"

@@ -775,6 +775,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.tagTranslationEnabled = updated.tagTranslationEnabled
         if (updated.tagTranslationUrl != current?.tagTranslationUrl)
             changes.tagTranslationUrl = updated.tagTranslationUrl
+        if (updated.gidOnlyMatch != current?.gidOnlyMatch)
+            changes.gidOnlyMatch = updated.gidOnlyMatch
         if (updated.searchDomain != current?.searchDomain)
             changes.searchDomain = updated.searchDomain
         if (updated.ipbMemberId != current?.ipbMemberId)
