@@ -306,6 +306,52 @@
                                     v-model="config.defaultProviders[index].gidOnlyMatch"
                                     label="GID Only Match"
                                   />
+                                  <q-checkbox
+                                    v-model="config.defaultProviders[index].archive!.enabled"
+                                    label="Archive Offline (e-hentai-db)"
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].archive!.url"
+                                    label="Archive Download URL"
+                                    dense
+                                    filled
+                                    hint="Leave empty for URenko nightly"
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].archive!.dbFile"
+                                    label="Archive DB File Path"
+                                    dense
+                                    filled
+                                    hint="Leave empty for default (workDir/ehentai/e-hentai.db)"
+                                  />
+                                  <q-input
+                                    v-model.number="config.defaultProviders[index].archive!.updateIntervalHours"
+                                    label="Archive Update Interval (hours)"
+                                    dense
+                                    filled
+                                    type="number"
+                                  />
+                                  <q-input
+                                    v-model.number="config.defaultProviders[index].archive!.idleReleaseSecs"
+                                    label="Archive Idle Release (secs, 0=off)"
+                                    dense
+                                    filled
+                                    type="number"
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].archive!.searchCategoryFilter"
+                                    label="Archive Category Filter"
+                                    dense
+                                    filled
+                                    hint="Comma-separated (e.g. Doujinshi, Manga); empty = no filter"
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].archive!.searchUploaderFilter"
+                                    label="Archive Uploader Filter"
+                                    dense
+                                    filled
+                                    hint="Comma-separated uploader names; empty = no filter"
+                                  />
                                   <q-select
                                     v-model="config.defaultProviders[index].searchDomain"
                                     :options="['e-hentai', 'exhentai']"
@@ -816,6 +862,52 @@
                                 <q-checkbox
                                   v-model="config.libraryProviders[libraryIndex].providers[index].gidOnlyMatch"
                                   label="GID Only Match"
+                                />
+                                <q-checkbox
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].archive!.enabled"
+                                  label="Archive Offline (e-hentai-db)"
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].archive!.url"
+                                  label="Archive Download URL"
+                                  dense
+                                  filled
+                                  hint="Leave empty for URenko nightly"
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].archive!.dbFile"
+                                  label="Archive DB File Path"
+                                  dense
+                                  filled
+                                  hint="Leave empty for default"
+                                />
+                                <q-input
+                                  v-model.number="config.libraryProviders[libraryIndex].providers[index].archive!.updateIntervalHours"
+                                  label="Archive Update Interval (hours)"
+                                  dense
+                                  filled
+                                  type="number"
+                                />
+                                <q-input
+                                  v-model.number="config.libraryProviders[libraryIndex].providers[index].archive!.idleReleaseSecs"
+                                  label="Archive Idle Release (secs, 0=off)"
+                                  dense
+                                  filled
+                                  type="number"
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].archive!.searchCategoryFilter"
+                                  label="Archive Category Filter"
+                                  dense
+                                  filled
+                                  hint="Comma-separated (e.g. Doujinshi, Manga); empty = no filter"
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].archive!.searchUploaderFilter"
+                                  label="Archive Uploader Filter"
+                                  dense
+                                  filled
+                                  hint="Comma-separated uploader names; empty = no filter"
                                 />
                                 <q-select
                                   v-model="config.libraryProviders[libraryIndex].providers[index].searchDomain"

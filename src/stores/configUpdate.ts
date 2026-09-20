@@ -218,7 +218,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                 let books = providersWithBooks.includes(key)
                 let mediaType = providersWithMediaType.includes(key)
                 return { ...(value as ProviderConfigDto), name: key, books: books, mediaTypeEnabled: mediaType,
-                    ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}) }
+                    ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
+                    ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {}) }
             }).filter(provider => provider.enabled)
 
         metadataProviders.defaultDisabledProviders = Object.entries(config.metadataProviders.defaultProviders)
@@ -226,7 +227,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                 let books = providersWithBooks.includes(key)
                 let mediaType = providersWithMediaType.includes(key)
                 return { ...(value as ProviderConfigDto), name: key, books: books, mediaTypeEnabled: mediaType,
-                    ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}) }
+                    ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
+                    ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {}) }
             }).filter(provider => !provider.enabled)
             .sort((a, b) => a.name.localeCompare(b.name))
 
@@ -246,14 +248,16 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                                 name: key,
                                 books: books,
                                 mediaTypeEnabled: mediaType,
-                                ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {})
+                                ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
+                                ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {})
                             }
                         }).filter(provider => provider.enabled),
                     disabledProviders: Object.entries(value as ProvidersConfigDto).map(([key, value]) => {
                         let books = providersWithBooks.includes(key)
                         let mediaType = providersWithMediaType.includes(key)
                         return { ...value as ProviderConfigDto, name: key, books: books, mediaTypeEnabled: mediaType,
-                            ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}) }
+                            ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
+                            ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {}) }
                     }).filter(provider => !provider.enabled)
                         .sort((a, b) => a.name.localeCompare(b.name))
                 }
@@ -777,6 +781,26 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.tagTranslationUrl = updated.tagTranslationUrl
         if (updated.gidOnlyMatch != current?.gidOnlyMatch)
             changes.gidOnlyMatch = updated.gidOnlyMatch
+
+        // ehentai archive offline data source
+        const curEArch = current?.archive as any
+        const newEArch = updated.archive as any
+        if (newEArch) {
+            const archChanges: any = {}
+            if (newEArch.enabled != curEArch?.enabled) archChanges.enabled = newEArch.enabled
+            if (newEArch.url != curEArch?.url) archChanges.url = newEArch.url ?? null
+            if (newEArch.dbFile != curEArch?.dbFile) archChanges.dbFile = newEArch.dbFile ?? null
+            if (newEArch.updateIntervalHours != curEArch?.updateIntervalHours) archChanges.updateIntervalHours = newEArch.updateIntervalHours
+            if (newEArch.idleReleaseSecs != curEArch?.idleReleaseSecs) archChanges.idleReleaseSecs = newEArch.idleReleaseSecs ?? null
+            const catFilter = Array.isArray(newEArch.searchCategoryFilter) ? newEArch.searchCategoryFilter : []
+            const curCatFilter = Array.isArray(curEArch?.searchCategoryFilter) ? curEArch.searchCategoryFilter : []
+            if (JSON.stringify(catFilter) !== JSON.stringify(curCatFilter)) archChanges.searchCategoryFilter = catFilter
+            const upFilter = Array.isArray(newEArch.searchUploaderFilter) ? newEArch.searchUploaderFilter : []
+            const curUpFilter = Array.isArray(curEArch?.searchUploaderFilter) ? curEArch.searchUploaderFilter : []
+            if (JSON.stringify(upFilter) !== JSON.stringify(curUpFilter)) archChanges.searchUploaderFilter = upFilter
+            if (Object.keys(archChanges).length > 0) changes.archive = archChanges
+        }
+
         if (updated.searchDomain != current?.searchDomain)
             changes.searchDomain = updated.searchDomain
         if (updated.ipbMemberId != current?.ipbMemberId)
@@ -827,8 +851,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.tagWhitelistFile = updated.tagWhitelistFile
 
         // bangumi archive offline data source
-        const curArch = current?.archive
-        const newArch = updated.archive
+        const curArch = current?.archive as any
+        const newArch = updated.archive as any
         if (newArch) {
             const archChanges: any = {}
             if (newArch.enabled != curArch?.enabled) archChanges.enabled = newArch.enabled
