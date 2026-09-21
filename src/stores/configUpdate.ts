@@ -984,27 +984,65 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                 .catch(() => {})
             return []
         } else {
+            // Kavita: try API first (sync XHR with JWT from localStorage), then DOM fallback
+            try {
+                let jwt = ''
+                // Kavita stores JWT in localStorage
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i)!
+                    const val = localStorage.getItem(key) || ''
+                    // JWT looks like three base64 segments separated by dots
+                    if (/^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(val)) { jwt = val; break }
+                    // Some versions store JSON with token field
+                    try {
+                        const parsed = JSON.parse(val)
+                        if (parsed && typeof parsed.token === 'string' && /^eyJ/.test(parsed.token)) { jwt = parsed.token; break }
+                        if (parsed && parsed.user && typeof parsed.user.token === 'string') { jwt = parsed.user.token; break }
+                    } catch (_e) { /* not JSON */ }
+                }
+                if (jwt) {
+                    const xhr = new XMLHttpRequest()
+                    xhr.open('GET', '/api/Library/libraries', false) // sync
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + jwt)
+                    xhr.setRequestHeader('Accept', 'application/json')
+                    xhr.send()
+                    if (xhr.status === 200) {
+                        const apiLibs = JSON.parse(xhr.responseText)
+                        if (Array.isArray(apiLibs) && apiLibs.length > 0) {
+                            return apiLibs.map((l: any) => ({ id: String(l.id), name: l.name }))
+                        }
+                    }
+                }
+            } catch (e) { /* ignore API errors */ }
+            // DOM fallback
             try {
                 const seen2 = new Set()
                 const libs3 = Array.from(document.querySelectorAll('a[href^="/library/"]')).map((el: any) => {
                     const href = el.getAttribute('href') || ''
-                    const m = href.match(/^\/library\/([^/?]+)/)
+                    // only numeric library IDs, skip /library/settings, /library/reader etc.
+                    const m = href.match(/^\/library\/(\d+)/)
                     return m ? { id: m[1], name: (el.textContent || '').trim() } : null
                 }).filter((x: any) => x && x.id && x.name && !seen2.has(x.id) && (seen2.add(x.id), true)) as { id: string, name: string }[]
                 if (libs3.length > 0) return libs3
             } catch (e) { /* ignore */ }
-            return Array.from(document.getElementsByTagName('app-side-nav')[0]
-                .getElementsByTagName('a'))
-                .filter(el => el.classList.contains('side-nav-item') &&
-                    /\/library.*/.test(el.getAttribute('href')!)
-                ).map(el => {
-                    let pathTokens = el.getAttribute('href')!.split('/')
-                    return {
-                        id: pathTokens[pathTokens.findIndex(el => el == 'library') + 1],
-                        name: Array.from(el.getElementsByTagName('span'))
-                            .find(span => span.classList.contains('side-nav-text'))?.textContent ?? ''
-                    }
-                })
+            try {
+                const nav = document.getElementsByTagName('app-side-nav')[0]
+                if (nav) {
+                    const libs4 = Array.from(nav.getElementsByTagName('a'))
+                        .filter(el => el.classList.contains('side-nav-item') &&
+                            /\/library\/\d+/.test(el.getAttribute('href')!))
+                        .map(el => {
+                            let pathTokens = el.getAttribute('href')!.split('/')
+                            return {
+                                id: pathTokens[pathTokens.findIndex(el => el == 'library') + 1],
+                                name: Array.from(el.getElementsByTagName('span'))
+                                    .find(span => span.classList.contains('side-nav-text'))?.textContent ?? ''
+                            }
+                        })
+                    if (libs4.length > 0) return libs4
+                }
+            } catch (e) { /* ignore */ }
+            return []
         }
     }
 
