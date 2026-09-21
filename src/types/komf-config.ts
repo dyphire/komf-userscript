@@ -73,6 +73,8 @@ export interface MetadataProcessingConfigUpdateDto {
     postProcessing?: MetadataPostProcessingConfigUpdateDto,
     searchTitleExtraction?: SearchTitleExtractionConfigUpdateDto,
     failedMatchCollectionName?: string | null,
+    mylarCovers?: boolean,
+    mylarOutputDir?: string | null,
     chineseConversion?: ChineseConversionConfigUpdateDto
 }
 
@@ -321,6 +323,8 @@ export interface MetadataProcessingConfigDto {
     postProcessing: MetadataPostProcessingConfigDto,
     searchTitleExtraction?: SearchTitleExtractionConfigDto,
     failedMatchCollectionName?: string | null,
+    mylarCovers?: boolean,
+    mylarOutputDir?: string | null,
     chineseConversion?: ChineseConversionConfigDto
 }
 

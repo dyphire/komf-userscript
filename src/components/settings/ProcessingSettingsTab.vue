@@ -211,6 +211,21 @@
         </div>
 
         <div class="col-auto">
+          <q-checkbox v-model="model.default.mylarCovers" label="Mylar Covers" />
+        </div>
+
+        <div class="col-auto">
+          <q-input
+            v-model="model.default.mylarOutputDir"
+            label="Mylar Output Dir"
+            dense
+            filled
+            clearable
+            hint="Mylar series.json export root dir"
+          />
+        </div>
+
+        <div class="col-auto">
           <q-input
             v-model="model.default.scoreTagName"
             label="Score Tag Name"
@@ -284,6 +299,8 @@
             hint="Auto-Identify Library failed series collection"
           />
         </div>
+
+
 
         <div class="col-12" style="padding: 8px 0 0 0">
           <q-expansion-item
@@ -579,6 +596,21 @@
           </div>
 
           <div class="col-auto">
+            <q-checkbox v-model="model.library[libraryIndex].mylarCovers" label="Mylar Covers" />
+          </div>
+
+          <div class="col-auto">
+            <q-input
+              v-model="model.library[libraryIndex].mylarOutputDir"
+              label="Mylar Output Dir"
+              dense
+              filled
+              clearable
+              hint="Mylar series.json export root dir"
+            />
+          </div>
+
+          <div class="col-auto">
             <q-input
               v-model="model.library[libraryIndex].scoreTagName"
               label="Score Tag Name"
@@ -652,6 +684,8 @@
               hint="Auto-Identify Library failed series collection"
             />
           </div>
+
+
 
           <div class="col-12" style="padding: 8px 0 0 0">
             <q-expansion-item
@@ -800,7 +834,7 @@ const settings = useSettingsStore()
 let config = useConfigUpdateStore()
 
 
-const updateModeOptions = ['API', 'COMIC_INFO', 'OPF']
+const updateModeOptions = ['API', 'COMIC_INFO', 'MYLAR_SERIES_JSON']
 const libraryTypeOptions = ['MANGA', 'NOVEL', 'COMIC']
 const readingDirectionOptions = ['LEFT_TO_RIGHT', 'RIGHT_TO_LEFT', 'VERTICAL', 'WEBTOON']
 const model = settings.mediaServer === MediaServer.Kavita
@@ -858,6 +892,8 @@ async function addLibrary(id: string) {
             cleanupRegex: []
         },
         failedMatchCollectionName: null,
+        mylarCovers: false,
+        mylarOutputDir: null,
         chineseConversion: {
             enabled: false,
             direction: 't2s',

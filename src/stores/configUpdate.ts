@@ -149,6 +149,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         linksMatchEnabled: true,
         searchTitleExtraction: defaultSearchTitleExtraction(),
         failedMatchCollectionName: null as string | null,
+        mylarCovers: false,
+        mylarOutputDir: null as string | null,
         chineseConversion: defaultChineseConversion()
     })
 
@@ -330,6 +332,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         model.alternativeTitleLanguages = dto.postProcessing.alternativeSeriesTitleLanguages
         model.searchTitleExtraction = dto.searchTitleExtraction ?? defaultSearchTitleExtraction()
         model.failedMatchCollectionName = dto.failedMatchCollectionName ?? null
+        model.mylarCovers = dto.mylarCovers ?? false
+        model.mylarOutputDir = dto.mylarOutputDir ?? null
         model.chineseConversion = dto.chineseConversion ?? defaultChineseConversion()
     }
 
@@ -525,6 +529,11 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
 
         if (patch.failedMatchCollectionName != current?.failedMatchCollectionName)
             changes.failedMatchCollectionName = patch.failedMatchCollectionName
+
+        if (patch.mylarCovers != current?.mylarCovers)
+            changes.mylarCovers = patch.mylarCovers
+        if (patch.mylarOutputDir != current?.mylarOutputDir)
+            changes.mylarOutputDir = patch.mylarOutputDir ?? null
 
         let chineseConversionChanges: NonNullable<MetadataProcessingConfigUpdateDto['chineseConversion']> | undefined = {}
         let curCc = current?.chineseConversion
@@ -1054,6 +1063,8 @@ export interface ProcessingUpdateModel {
         cleanupRegex: any
     },
     failedMatchCollectionName: string | null,
+    mylarCovers: boolean,
+    mylarOutputDir: string | null,
     chineseConversion: {
         enabled: boolean,
         direction: string,
