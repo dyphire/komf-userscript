@@ -1,5 +1,5 @@
 <template>
-  <q-menu class="text-body2 text-weight-medium">
+  <q-menu class="text-body2 text-weight-medium" @before-show="syncTheme">
     <q-item clickable v-close-popup @click="autoIdentify">
       <q-item-section class="text-body2 text-weight-medium" no-wrap>Auto-Identify Library</q-item-section>
     </q-item>
@@ -15,11 +15,14 @@ import type KomfMetadataService from '../services/komf-metadata.service'
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue'
 import { komfMetadataKey } from '@/injection-keys'
 import { errorNotification } from '@/errorNotification'
+import { hostDarkProbe, detectHost } from '@/host'
+import { useHostTheme } from '@/composables/useHostTheme'
 import { useQuasar } from 'quasar'
 import { useSettingsStore } from '@/stores/settings'
 import MediaServer from '@/types/mediaServer'
 
 const $q = useQuasar()
+const { refresh: syncTheme } = useHostTheme(hostDarkProbe(detectHost(document.title)))
 const metadataService = inject<KomfMetadataService>(komfMetadataKey) as KomfMetadataService
 const settings = useSettingsStore()
 

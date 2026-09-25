@@ -22,10 +22,7 @@
                 active-color="info"
                 :class="{ 'text-teal': connectionSuccess, 'text-blue-grey': !connectionSuccess }"
               >
-                <q-tab name="connection" label="Connection"
-                       :icon="settings.mediaServer === MediaServer.Komga?
-                      'mdi-connection' :'fa fa-plug'"
-                />
+                <q-tab name="connection" label="Connection" icon="mdi-connection" />
                 <q-tab name="komga" label="Komga"
                        v-if="settings.mediaServer === MediaServer.Komga"
                        :disable="!connectionSuccess"
@@ -34,22 +31,19 @@
                 <q-tab name="kavita" label="Kavita"
                        v-if="settings.mediaServer === MediaServer.Kavita"
                        :disable="!connectionSuccess"
-                       icon="fa fa-server"
+                       icon="mdi-server"
                 />
                 <q-tab name="providers" label="Providers"
                        :disable="!connectionSuccess"
-                       :icon="settings.mediaServer === MediaServer.Komga?
-                      'mdi-file-document' :'fa fa-file-lines'"
+                       icon="mdi-file-document"
                 />
                 <q-tab name="processing" label="Processing"
                        :disable="!connectionSuccess"
-                       :icon="settings.mediaServer === MediaServer.Komga?
-                      'mdi-file-refresh' :'fa fa-file-code'"
+                       icon="mdi-file-refresh"
                 />
                 <q-tab name="notifications" label="Notifications"
                        :disable="!connectionSuccess"
-                       :icon="settings.mediaServer === MediaServer.Komga?
-                      'mdi-bell' :'fa fa-bell'"
+                       icon="mdi-bell"
                 />
               </q-tabs>
             </template>
@@ -66,9 +60,7 @@
                 <q-tab-panel name="connection">
 
                   <div class="text-h6 gt-xs q-pb-lg">
-                    <q-icon :name="settings.mediaServer === MediaServer.Komga?
-                      'mdi-connection' :'fa fa-plug'"
-                    />
+                    <q-icon name="mdi-connection" />
                     Connection
                   </div>
 
@@ -81,17 +73,10 @@
                         </q-btn>
                       </div>
                       <div class="col-auto offset-md-1" v-if="connectionSuccess && !configUpdating"> Connected
-                        <q-icon :name="settings.mediaServer === MediaServer.Komga?
-               'mdi-check' : 'fa fa-check'"
-                                color="positive"
-                        />
+                        <q-icon name="mdi-check" color="positive" />
                       </div>
                       <div class="col-auto offset-md-1" v-if="connectionError && !configUpdating"> {{ connectionError }}
-                        <q-icon
-                          :name="settings.mediaServer === MediaServer.Komga?
-                   'mdi-alert-circle': 'fa fa-circle-exclamation'"
-                          color="negative"
-                        />
+                        <q-icon name="mdi-alert-circle" color="negative" />
                       </div>
                     </div>
                   </q-card>

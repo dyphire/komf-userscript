@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance } from 'axios'
 import type { IdentifyRequest, SearchResult } from '@/types/metadata'
 import { useSettingsStore } from '@/stores/settings'
+import MediaServer from '@/types/mediaServer'
 
 export default class KomfMetadataService {
     private http: AxiosInstance
@@ -112,5 +113,51 @@ export default class KomfMetadataService {
         if (!Array.isArray(data)) {
             throw new Error('Connection Failed')
         }
+    }
+
+    /**
+     * Resolve the current series context (libraryId + title).
+     *
+     * Komga (and kmrs/kmweb, which exposes the same API): prefer the library id
+     * from the URL when present (`/libraries/:id/...`), otherwise fall back to
+     * the Komga API since detail pages (`/series/:id`, `/oneshot/:id`) do not
+     * carry the library id in the path. Kavita keeps the original DOM logic.
+     */
+    async resolveSeriesContext(seriesId: string): Promise<{ libraryId?: string, title?: string }> {
+        if (this.settings.mediaServer == MediaServer.Kavita) {
+            let pathTokens = window.location.pathname.split('/')
+            const libraryId = pathTokens[pathTokens.findIndex(el => el == 'library') + 1]
+            return {
+                libraryId: libraryId,
+                title: (document.querySelector('app-series-detail .info-container div h4 span') as HTMLElement)?.innerText
+            }
+        }
+
+        const pathTokens = window.location.pathname.split('/')
+        const libraryIdx = pathTokens.findIndex(el => el == 'libraries')
+        if (libraryIdx > 0) {
+            return { libraryId: pathTokens[libraryIdx + 1], title: this.seriesTitleFromDom() }
+        }
+
+        try {
+            const resp = await fetch(`/api/v1/series/${seriesId}`, { credentials: 'include' })
+            if (resp.ok) {
+                const s = await resp.json()
+                return {
+                    libraryId: s.libraryId,
+                    title: (s.metadata && s.metadata.title) || s.name
+                }
+            }
+        } catch (_e) { /* fall back to DOM below */ }
+
+        return { libraryId: undefined, title: this.seriesTitleFromDom() }
+    }
+
+    private seriesTitleFromDom(): string | undefined {
+        return (
+            document.querySelector('.v-main__wrap .v-toolbar__title span') ||
+            document.querySelector('.v-main__wrap .container--fluid .container span.text-h6') ||
+            document.querySelector('main h1')
+        )?.textContent?.trim() || undefined
     }
 }

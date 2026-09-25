@@ -1,30 +1,732 @@
-.bg-dark {
+/* =====================================================================
+   Komf userscript global overrides — the single injected style sheet.
+
+   Selector strategy (refactor A):
+   - `[data-komf-theme='dark'|'light']` — script-owned theme marker stamped
+     on <html> by useHostTheme (hosts differ: Komga reads its Vuex storage,
+     Kavita is always dark, kmweb toggles <html class="dark|light">).
+   - `[data-komf-host='kmweb'|'komga'|'kavita']` — script-owned host marker
+     stamped by App.vue; used only for host-page restore rules (kmweb page).
+   - Dialog/portal rules (inside [id^='q-portal--']) are host-agnostic: the
+     Komf settings dialog renders identically on every host, so one rule set
+     now serves Komga, Kavita and kmweb alike.
+   ===================================================================== */
+
+/* ---- Komga / Kavita Bootstrap collision patches --------------------
+   Host-scoped to [data-komf-host='komga'|'kavita']: these unlayered rules
+   fight Bootstrap classes on those pages. They MUST NOT apply to unknown
+   hosts — e.g. Stump (React + Tailwind) — where .hidden / .text-accent are
+   Tailwind utilities and `display: unset !important` would force hidden
+   elements visible and break the layout. */
+[data-komf-host='komga'] .bg-dark,
+[data-komf-host='kavita'] .bg-dark {
   background: var(--bs-body-bg) !important;
 }
 
-.bg-primary {
+[data-komf-host='komga'] .bg-primary,
+[data-komf-host='kavita'] .bg-primary {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
 }
 
-body {
+[data-komf-host='komga'] body,
+[data-komf-host='kavita'] body {
   font-size: unset;
 }
 
-.hidden {
+[data-komf-host='komga'] .hidden,
+[data-komf-host='kavita'] .hidden {
   display: unset !important;
 }
 
-.q-item.row {
+[data-komf-host='komga'] .q-item.row,
+[data-komf-host='kavita'] .q-item.row {
   margin: 0;
 }
 
-.col {
+[data-komf-host='komga'] .col,
+[data-komf-host='kavita'] .col {
   width: unset !important;
   min-width: unset !important;
 }
 
-
-.text-accent {
+[data-komf-host='komga'] .text-accent,
+[data-komf-host='kavita'] .text-accent {
   color: unset !important;
+}
+
+/* ---- kmweb integration hooks ---- */
+#komf .kmweb-integration {
+  display: contents;
+}
+
+#komf .kmweb-integration .q-btn {
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* ---- Komf UI typography (host-agnostic: the injected UI is always
+        Quasar's Roboto; host page fonts are restored further down) ---- */
+#komf,
+[id^='q-portal--'] {
+  font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: inherit;
+  background: transparent;
+}
+
+/* ---- Dialog token set --------------------------------------------------
+   The dialog styling below uses kmweb's design tokens (--surface, --ink,
+   --accent, …). Those tokens only exist on kmweb's <html>; on Komga/Kavita
+   they resolve empty and every var() would collapse. Define stable --komf-*
+   tokens on every portal with a kmweb-default fallback so ONE rule set
+   serves all hosts (kmweb instance vars still win when present). */
+[id^='q-portal--'] {
+  --komf-accent: var(--accent, #ff9500);
+  --komf-accent-strong: var(--accent-strong, #ffb340);
+  --komf-accent-ink: var(--accent-ink, #241500);
+  --komf-accent-soft: var(--accent-soft, rgb(255 149 0 / 0.14));
+  --komf-surface: var(--surface, #ffffff);
+  --komf-ink: var(--ink, #1c1c1e);
+  --komf-ink-2: var(--ink-2, #5c5c62);
+  --komf-ink-3: var(--ink-3, #a6a6ad);
+  --komf-bg: var(--bg, #f4f4f5);
+  --komf-line: var(--line, #e6e6e4);
+  --komf-line-strong: var(--line-strong, #d0d0cc);
+  --komf-raised: var(--raised, #efefec);
+  --komf-overlay: var(--overlay, rgb(0 0 0 / 0.04));
+  --komf-danger: var(--danger, #d84a3f);
+  --komf-shadow-card: var(--shadow-card, 0 2px 8px rgb(0 0 0 / 0.06));
+}
+
+/* ---- Dialog layout (host-agnostic, theme-independent) ------------------ */
+/* narrow viewports: keep the tab rail legible */
+[id^='q-portal--'] .q-splitter__before {
+  min-width: 136px;
+}
+/* tab icons keep a fixed 24px box (flex-overflow squeeze fix) */
+[id^='q-portal--'] .q-tab__icon {
+  flex-shrink: 0 !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+}
+/* form fields fill the panel */
+[id^='q-portal--'] .q-tab-panel .q-field {
+  width: 100% !important;
+}
+[id^='q-portal--'] .q-tab-panel .column > .col-auto {
+  width: 100%;
+}
+[id^='q-portal--'] .q-tab-panel .q-card {
+  width: 100%;
+}
+[id^='q-portal--'] .q-dialog .q-splitter {
+  width: 100%;
+}
+
+/* vertical tab rail icons: left-align content + tab so every icon sits at
+   the same x (Quasar centers the icon+label pair) */
+[id^='q-portal--'] .q-tab__content--inline {
+  justify-content: flex-start !important;
+}
+[id^='q-portal--'] .q-tabs--vertical .q-tab {
+  justify-content: flex-start !important;
+}
+/* Kavita's host CSS defeats Quasar's inline-label layout: the tab content
+   stacks the icon ABOVE the label (column) instead of side by side, which
+   inflates rail tabs, offsets icons vs labels and leaves uneven gaps. Force
+   the inline row layout for every tab content in the settings rail, then pin
+   the rail to a tight even 48px column. */
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tab__content,
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tab__content--inline {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tabs--vertical .q-tabs__content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+}
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tabs--vertical .q-tab {
+  flex: 0 0 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  margin: 0 !important;
+  padding: 4px 8px !important;
+}
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tabs--vertical .q-tab.q-tab--active {
+  margin: 0 !important;
+  padding: 4px 8px !important;
+}
+/* The wrapped tabs row also makes Quasar believe the tab strip overflows,
+   so it paints left/right scroll arrows next to the panel header. Keep the
+   strip on one line and suppress the spurious arrows. */
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tabs__content {
+  flex-wrap: nowrap !important;
+}
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tabs .q-tabs__arrow {
+  display: none !important;
+}
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tabs__arrows {
+  display: none !important;
+}
+/* Kavita host also collapses the tab icon to 0 width inside the flex row
+   (overriding Quasar's flex-shrink), so the label overlaps the icon
+   position. Re-pin the icon as an unshrinkable 24px box and give the label
+   a margin so icon + label sit side by side. */
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tab__icon {
+  flex: 0 0 24px !important;
+  flex-shrink: 0 !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  display: inline-flex !important;
+  position: static !important;
+  margin: 0 !important;
+}
+[data-komf-host='kavita'] [id^='q-portal--'] .q-tab__label {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  margin-left: 0 !important;
+  position: static !important;
+}
+/* status columns next to buttons center on the row (Quasar .row stretches) */
+[id^='q-portal--'] .q-tab-panel .row.justify-start .col-auto {
+  align-self: center;
+}
+/* relaxed dense Options sub-sections (Series/Book Metadata/Misc) */
+[id^='q-portal--'] .q-expansion-item__container > .q-item {
+  min-height: 46px;
+  padding: 10px 12px;
+}
+[id^='q-portal--'] .q-expansion-item__content .col-auto {
+  padding-top: 12px !important;
+}
+[id^='q-portal--'] .q-expansion-item__content .q-field--dense {
+  min-height: 44px;
+}
+
+/* ---- Dialog theme (kmweb look, follows data-komf-theme) ---------------- */
+/* map Quasar's palette to the komf tokens (light and dark share the shape) */
+[data-komf-theme='dark'] [id^='q-portal--'],
+[data-komf-theme='light'] [id^='q-portal--'] {
+  --q-primary: var(--komf-accent);
+  --q-secondary: var(--komf-accent-strong);
+  --q-accent: var(--komf-accent);
+  --q-positive: var(--komf-accent);
+  --q-negative: var(--komf-danger);
+  --q-warning: var(--komf-accent);
+  --q-info: var(--komf-ink-2);
+  --q-dark: var(--komf-ink);
+  --q-dark-page: var(--komf-bg);
+}
+
+/* dialog shell: surface panel, hairline border, rounded-xl */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-dialog-plugin,
+[data-komf-theme='light'] [id^='q-portal--'] .q-dialog-plugin {
+  background: var(--komf-surface);
+  border: 1px solid var(--komf-line);
+  border-radius: 12px;
+  box-shadow: var(--komf-shadow-card);
+}
+
+/* vertical tab rail: plain text nav like the kmweb sidebar */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tabs--vertical .q-tabs__content,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tabs--vertical .q-tabs__content {
+  padding: 8px 6px;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tabs--vertical .q-tab,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tabs--vertical .q-tab {
+  border-radius: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  margin: 1px 4px;
+  text-transform: none;
+  color: var(--komf-ink-2) !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tabs--vertical .q-tab:hover,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tabs--vertical .q-tab:hover {
+  background: var(--komf-raised);
+  color: var(--komf-ink);
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tabs--vertical .q-tab.q-tab--active,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tabs--vertical .q-tab.q-tab--active {
+  background: var(--komf-accent-soft);
+  color: var(--komf-accent-strong) !important;
+  font-weight: 500;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tabs--vertical .q-tab__indicator,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tabs--vertical .q-tab__indicator {
+  display: none;
+}
+
+/* inline tabs (Default / LIBRARY): segmented control */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-tabs__content,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tab-panel .q-tabs__content {
+  background: var(--komf-overlay);
+  border: 1px solid var(--komf-line);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-tabs__content .q-tab,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tab-panel .q-tabs__content .q-tab {
+  border-radius: 6px;
+  min-height: 30px;
+  text-transform: none;
+  color: var(--komf-ink-2);
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-tabs__content .q-tab.q-tab--active,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tab-panel .q-tabs__content .q-tab.q-tab--active {
+  background: var(--komf-surface);
+  color: var(--komf-ink);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-tabs__content .q-tab__indicator,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tab-panel .q-tabs__content .q-tab__indicator {
+  display: none;
+}
+
+/* filled inputs: surface bg, hairline border, rounded-lg */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field--filled .q-field__control,
+[data-komf-theme='light'] [id^='q-portal--'] .q-field--filled .q-field__control {
+  background: var(--komf-surface);
+  border: 1px solid var(--komf-line);
+  border-radius: 8px;
+  min-height: 36px;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field--filled .q-field__control:before,
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field--filled .q-field__control:after,
+[data-komf-theme='light'] [id^='q-portal--'] .q-field--filled .q-field__control:before,
+[data-komf-theme='light'] [id^='q-portal--'] .q-field--filled .q-field__control:after {
+  border: 0 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field--filled .q-field__control:hover,
+[data-komf-theme='light'] [id^='q-portal--'] .q-field--filled .q-field__control:hover {
+  border-color: var(--komf-line-strong);
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field--filled.q-field--highlighted .q-field__control,
+[data-komf-theme='light'] [id^='q-portal--'] .q-field--filled.q-field--highlighted .q-field__control {
+  border-color: var(--komf-accent);
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field__label,
+[data-komf-theme='light'] [id^='q-portal--'] .q-field__label {
+  color: var(--komf-ink-3);
+}
+
+/* buttons: rounded-lg, sentence case, kmweb tones */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-btn,
+[data-komf-theme='light'] [id^='q-portal--'] .q-btn {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 500;
+}
+/* solid accent buttons (Save / Check connection): kmweb primary Button —
+   bg accent, accent-ink text, accent-strong hover, md height, soft shadow */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-btn--standard,
+[data-komf-theme='light'] [id^='q-portal--'] .q-btn--standard {
+  background: var(--komf-accent) !important;
+  color: var(--komf-accent-ink) !important;
+  min-height: 40px;
+  padding: 0 16px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-btn--standard:hover,
+[data-komf-theme='light'] [id^='q-portal--'] .q-btn--standard:hover {
+  background: var(--komf-accent-strong) !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-card-actions .q-btn--flat,
+[data-komf-theme='light'] [id^='q-portal--'] .q-card-actions .q-btn--flat {
+  color: var(--komf-ink-2);
+}
+/* dialog footer buttons share kmweb's md height */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-card-actions .q-btn,
+[data-komf-theme='light'] [id^='q-portal--'] .q-card-actions .q-btn {
+  min-height: 40px;
+}
+
+/* nested cards: surface + hairline border + rounded */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-card,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tab-panel .q-card {
+  background: var(--komf-surface);
+  border: 1px solid var(--komf-line);
+  border-radius: 10px;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-card--bordered,
+[data-komf-theme='light'] [id^='q-portal--'] .q-card--bordered {
+  border-color: var(--komf-line);
+}
+
+/* panel titles */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .text-h6,
+[data-komf-theme='light'] [id^='q-portal--'] .q-tab-panel .text-h6 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--komf-ink);
+}
+
+/* expansion items */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-expansion-item__container,
+[data-komf-theme='light'] [id^='q-portal--'] .q-expansion-item__container {
+  border: 1px solid var(--komf-line);
+  border-radius: 10px;
+  background: var(--komf-surface);
+  overflow: hidden;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-expansion-item__header,
+[data-komf-theme='light'] [id^='q-portal--'] .q-expansion-item__header {
+  color: var(--komf-ink-2);
+}
+
+/* ---- Dark mode hard fallback --------------------------------------------
+   MUST stay after all var()-based rules. The branded kmweb instance can pin
+   --surface/--overlay/--ink-2/--accent-strong & friends to their LIGHT
+   values even under html.dark, so Quasar paints white-on-white. Pin every
+   color the dialog renders to the stock dark palette with !important.
+   Applies to every host in dark mode (Komga/Kavita get the same palette). */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-dialog-plugin,
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-card,
+[data-komf-theme='dark'] [id^='q-portal--'] .q-expansion-item__container {
+  background: #131316 !important;
+  border-color: rgb(255 255 255 / 0.08) !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-tabs__content {
+  background: #232329 !important;
+  border-color: rgb(255 255 255 / 0.08) !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field--filled .q-field__control {
+  background: #1b1b1f !important;
+  border-color: rgb(255 255 255 / 0.08) !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tabs--vertical .q-tab {
+  color: #a6a6ad !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tabs--vertical .q-tab.q-tab--active {
+  background: rgb(255 149 0 / 0.14) !important;
+  color: #ffb340 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-tabs__content .q-tab {
+  color: #a6a6ad !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-tabs__content .q-tab.q-tab--active {
+  background: #1b1b1f !important;
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field__label {
+  color: #6e6e76 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field__native,
+[data-komf-theme='dark'] [id^='q-portal--'] .q-field__input {
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-btn--standard {
+  background: #ff7a55 !important;
+  color: #2a0e03 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-btn--standard:hover {
+  background: #ffb340 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-card-actions .q-btn--flat {
+  color: #a6a6ad !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .text-h6 {
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-expansion-item__header {
+  color: #a6a6ad !important;
+}
+/* Quasar paints .q-tab-panels (settings content area) and .q-markup-table
+   white by default; those must also go dark */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panels {
+  background: #131316 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-markup-table {
+  background: #131316 !important;
+}
+/* select dropdowns (.q-menu) and chips are white/grey by default */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-menu {
+  background: #1b1b1f !important;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.4), 0 16px 48px rgb(0 0 0 / 0.42) !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-menu .q-item {
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-menu .q-item--active {
+  background: rgb(255 149 0 / 0.14) !important;
+  color: #ffb340 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-chip {
+  background: #232329 !important;
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-chip__icon,
+[data-komf-theme='dark'] [id^='q-portal--'] .q-chip .q-icon {
+  color: inherit;
+}
+
+/* IdentifySeriesDialog steps: the q-list link picker and the mobile
+   q-toolbar are white by default — darken them with the same palette */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-list {
+  background: #131316 !important;
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-list .q-item {
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-list .q-item--active {
+  background: rgb(255 149 0 / 0.14) !important;
+  color: #ffb340 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-list .q-item__label,
+[data-komf-theme='dark'] [id^='q-portal--'] .q-list .q-item__label--caption {
+  color: #a6a6ad !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-toolbar {
+  background: #131316 !important;
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-toolbar__title {
+  color: #f4f4f5 !important;
+}
+
+/* IdentifySeriesDialog results grid: each result is a nested q-card
+   (.identify-card). Quasar's q-card--dark background does not survive on
+   Tailwind hosts (renders --ink light), so pin the dark palette here too */
+[data-komf-theme='dark'] [id^='q-portal--'] .identify-card {
+  background: #1b1b1f !important;
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .identify-card .text-center {
+  color: #f4f4f5 !important;
+}
+[data-komf-theme='dark'] [id^='q-portal--'] .q-tooltip {
+  background: #232329 !important;
+  color: #f4f4f5 !important;
+}
+
+/* Plugin dialogs must stay centered: Quasar centers .q-dialog__inner via
+   the .flex/.flex-center utility classes, whose unlayered layout can be
+   defeated on Tailwind hosts (panel renders full-width, left-aligned). Pin
+   the flex centering for every plugin dialog. */
+/* Full-viewport centering for every Quasar dialog inner container.
+   Plain class selector matches regardless of portal id prefix or nesting;
+   the scoped variant covers the injected-tree case. */
+.q-dialog__inner,
+[id^='q-portal--'] .q-dialog__inner {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+}
+/* Belt: if a host still defeats the flex centering, auto margins on the
+   dialog child center it under both flex and block layout. */
+[id^='q-portal--'] .q-dialog__inner > div,
+[id^='q-portal--'] .q-dialog__inner > .q-card {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}/* Viewport-centered card: kmweb's host CSS defeats Quasar's fixed/inset
+   dialog centering (inner collapses to content width, left-aligned), so the
+   card is pinned to the viewport center directly. 50% + translate(-50%)
+   scales together under page zoom. Max bounds are applied by JS with
+   measured pixels (vw/vh units are zoom-distorted on this host). Transitions
+   are killed so Quasar's enter animation cannot tween from the left
+   position to the centered one. */
+.q-dialog__inner .q-dialog-plugin {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  transition: none !important;
+}
+/* SettingsDialog's q-card carries the Quasar .full-width class
+   (width:100%), which stretches the panel across the whole viewport on
+   desktop (JS pixel max-width = viewport-32 only caps it just below full
+   width). Bound the card to the intended 900px. Percentages resolve against
+   the viewport for fixed cards, so min(900px, 100%) stays correct under
+   page zoom (vw units are zoom-distorted) and shrinks on small windows. */
+[id^='q-portal--'] .q-dialog__inner .q-dialog-plugin.full-width {
+  width: min(900px, 100%) !important;
+  max-width: min(900px, 100%) !important;
+}
+
+
+/* IdentifySeriesDialog: its inline 820px width can be defeated by host CSS
+   on desktop (full-width stretch). Lock it on desktop viewports only so the
+   Quasar mobile layout is untouched. */
+@media (min-width: 600px) {
+  [id^='q-portal--'] .q-dialog__inner .identify-dialog {
+    width: 820px !important;
+    max-width: 820px !important;
+  }
+}
+/* Belt-and-braces for hosts whose theme marker may not be applied when the
+   dialog opens: match the host's own dark class (kmweb toggles html.dark)
+   directly so plugin dialogs never render light-on-light. */
+html.dark [id^='q-portal--'] .q-dialog__inner .identify-dialog {
+  background: #131316 !important;
+  color: #f4f4f5 !important;
+}
+/* The Identify dialog's inner form/result cards are direct children of the
+   dialog card. Quasar's q-card--dark class carries no background of its own,
+   and hosts that defeat the dark class leave them painted with the light
+   surface (#f4f4f5) — pin them to the dark surface explicitly. */
+[data-komf-theme='dark'] [id^='q-portal--'] .q-dialog-plugin .q-card:not(.identify-card),
+html.dark [id^='q-portal--'] .q-dialog-plugin .q-card:not(.identify-card) {
+  background: #131316 !important;
+  color: #f4f4f5 !important;
+}
+
+/* ---- kmweb host page restore (only where data-komf-host='kmweb') -------
+   Quasar's unlayered global CSS (typography/colors/flex) overrides kmweb's
+   Tailwind @layer utilities. These rules undo that on the kmweb page only. */
+/* body font: kmweb's --font-sans resolves empty at runtime on this instance,
+   so var() falls back to ui-sans-serif and wipes "Geist Variable" —
+   hardcode kmweb's native stack and leave line-height to Geist's metrics. */
+[data-komf-host='kmweb'] body {
+  font-family: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+}
+[data-komf-host='kmweb'][data-komf-theme='dark'] body.body--dark {
+  color: var(--ink, #f4f4f5);
+  background: var(--bg, #0b0b0d);
+}
+/* Quasar gives p a bottom margin; Tailwind preflight resets it (page only) */
+[data-komf-host='kmweb'] p:not(#komf p):not([id^='q-portal--'] p) {
+  margin: 0;
+}
+/* Quasar colors override Tailwind's accent utilities (page only) */
+[data-komf-host='kmweb'] .text-accent:not(#komf .text-accent):not([id^='q-portal--'] .text-accent) {
+  color: var(--accent, #ff9500) !important;
+}
+[data-komf-host='kmweb'] .bg-accent:not(#komf .bg-accent):not([id^='q-portal--'] .bg-accent) {
+  background-color: var(--accent, #ff9500) !important;
+}
+/* Quasar's .flex sets flex-wrap: wrap, Tailwind's does not (page only) */
+[data-komf-host='kmweb'] .flex:not(#komf .flex):not([id^='q-portal--'] .flex):not(.flex-wrap):not(.flex-nowrap) {
+  flex-wrap: nowrap;
+}
+/* Quasar's unlayered button/input/select/textarea { font: inherit } beats
+   Tailwind utilities (text-[11px], font-medium, tracking…); revert the
+   layer stack so kmweb's utilities win again (exclude Komf UI) */
+[data-komf-host='kmweb'] button:not(#komf button):not([id^='q-portal--'] button),
+[data-komf-host='kmweb'] input:not(#komf input):not([id^='q-portal--'] input),
+[data-komf-host='kmweb'] select:not(#komf select):not([id^='q-portal--'] select),
+[data-komf-host='kmweb'] textarea:not(#komf textarea):not([id^='q-portal--'] textarea) {
+  font: revert-layer;
+  text-transform: revert-layer;
+}
+
+/* ---- Shared nav entry (NavEntry.vue) ------------------------------------
+   Native <button> + inline SVG rendered by NavEntry.vue and Teleported into
+   the host <nav>, outside #komf — so selectors are bare class names. The
+   variant modifier drives per-host metrics: kmweb 36px/18px/13.5px, komga
+   48px/24px/16px (Vuetify v-list-item), kavita icon-only 14px glyph. */
+.komf-nav-entry {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  color: inherit !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+.komf-nav-entry .komf-nav-icon {
+  flex: none !important;
+  fill: currentColor !important;
+}
+
+/* kmweb: 36px row / 18px icon / 13.5px label, kmweb hover tones */
+.komf-nav-entry--kmweb {
+  gap: 12px !important;
+  padding: 8px 12px !important;
+  min-height: 36px !important;
+  font-size: 13.5px !important;
+  line-height: 18px !important;
+  border-radius: 8px !important;
+}
+.komf-nav-entry--kmweb .komf-nav-icon {
+  width: 18px !important;
+  height: 18px !important;
+}
+html.light .komf-nav-entry--kmweb {
+  color: #5c5c62 !important;
+}
+html.light .komf-nav-entry--kmweb:hover {
+  background: #efefec !important;
+  color: #1c1c1e !important;
+}
+html.dark .komf-nav-entry--kmweb {
+  color: #a6a6ad !important;
+}
+html.dark .komf-nav-entry--kmweb:hover {
+  background: #1b1b1f !important;
+  color: #f4f4f5 !important;
+}
+
+/* komga (Vuetify v-list-item): 48px row / 24px icon / 16px label */
+.komf-nav-entry--komga {
+  gap: 16px !important;
+  padding: 12px 16px !important;
+  min-height: 48px !important;
+  font-size: 16px !important;
+  line-height: 24px !important;
+}
+.komf-nav-entry--komga .komf-nav-icon {
+  width: 24px !important;
+  height: 24px !important;
+}
+.komf-nav-entry--komga:hover {
+  background: rgb(0 0 0 / 0.05) !important;
+}
+
+/* kavita: icon-only glyph button — 22px icon + 9px padding ≈ 40px touch
+   target, matching Kavita's toolbar icon-button scale */
+.komf-nav-entry--kavita {
+  justify-content: center !important;
+  width: auto !important;
+  padding: 9px !important;
+  border: 2px solid transparent !important;
+  border-radius: 20% !important;
+}
+.komf-nav-entry--kavita .komf-nav-icon {
+  width: 22px !important;
+  height: 22px !important;
+}
+.komf-nav-entry--kavita:hover {
+  border-color: #fff !important;
+}
+
+/* Kill every animation/transition inside the injected portals: Quasar's
+   dialog enter animation runs on a wrapper (JS-driven transform/transition),
+   which would slide the card from its default left position to the centered
+   one. Disabling all animation inside portals makes dialogs appear already
+   centered with no visible slide. (Layout is unaffected; tall dialogs are
+   bounded and scrolled by the JS pixel max-height pin.) */
+[id^='q-portal--'] *,
+[id^='q-portal--'] *::before,
+[id^='q-portal--'] *::after {
+  animation: none !important;
+  transition: none !important;
 }

@@ -1,96 +1,80 @@
 <template>
   <Teleport :to="settingsElement">
-    <q-btn
-      flat no-caps align="left"
-      outline
-      size="14px"
-      class="text-body1 transparent full-width settings-button"
-      icon="fa fa-puzzle-piece"
-      @click="settingsDialog"
-    >
-    </q-btn>
+    <NavEntry variant="kavita" @click="settingsDialog" />
   </Teleport>
   <Teleport :to="libraryActionsElement">
     <KavitaLibraryActions />
   </Teleport>
-  <Teleport :to=seriesActionsElement>
+  <Teleport :to="seriesActionsElement">
     <KavitaSeriesActionsMenu />
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import type { Ref } from 'vue'
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
+import NavEntry from '@/components/NavEntry.vue'
 import SettingsDialog from './components/settings/SettingsDialog.vue'
 import KavitaSeriesActionsMenu from '@/components/KavitaSeriesActionsMenu.vue'
 import KavitaLibraryActions from '@/components/KavitaLibraryActions.vue'
+import { hostDarkProbe } from '@/host'
+import { useHostTheme } from '@/composables/useHostTheme'
+import { useInjection, type InjectionPoint } from '@/composables/useInjection'
 
 const $q = useQuasar()
-$q.dark.set(true)
 
-const library = ref(false)
-const series = ref(false)
-
-const settingsElement = ref(document.createElement('div'))
-const libraryActionsElement: Ref<HTMLElement> = ref(document.createElement('div'))
+const settingsElement = ref<HTMLElement>(document.createElement('div'))
+const libraryActionsElement = ref<HTMLElement>(document.createElement('div'))
 libraryActionsElement.value.setAttribute('class', 'col-auto')
-const seriesActionsElement = ref(document.createElement('div'))
+const seriesActionsElement = ref<HTMLElement>(document.createElement('div'))
 seriesActionsElement.value.setAttribute('class', 'col-auto ms-2')
 
 function settingsDialog() {
+    refreshTheme()
     $q.dialog({
         component: SettingsDialog
     })
 }
 
-const observer = new window.MutationObserver((mutations) => {
-        for (const { addedNodes } of mutations) {
-            if (!addedNodes || addedNodes.length === 0) {
-                continue
-            }
+const points: InjectionPoint[] = [
+    {
+        id: 'nav',
+        locate: () => {
+            const el = document.querySelector('app-nav-header') ?? document.querySelector('nav')
+            const navBar = el?.nodeName === 'APP-NAV-HEADER'
+                ? el.firstElementChild?.firstElementChild
+                : el?.firstElementChild
+            const slot = navBar?.children.item(4)
+            return slot ? { insert: 'beforebegin', ref: slot } : null
+        },
+    },
+    {
+        id: 'series',
+        locate: () => {
+            const btn = document.querySelector('button#edit-btn--komf')
+            return btn?.parentElement ? { insert: 'afterend', ref: btn.parentElement } : null
+        },
+    },
+    {
+        id: 'library',
+        locate: () => {
+            const btn = document.querySelector('button#filter-btn--komf')
+            return btn?.parentElement ? { insert: 'append', ref: btn.parentElement } : null
+        },
+        // Kavita doesn't insert a container: the Teleport target is repointed
+        // at the host's own filter container (original behavior)
+        attach: (op, _el, retarget) => {
+            retarget(op.ref as HTMLElement)
+        },
+    },
+]
 
-            for (const node of addedNodes) {
-                if (node.nodeType != Node.ELEMENT_NODE || (<Element>node).children.length == 0) {
-                    continue
-                }
-                const element = node as Element
+useInjection(points, {
+    nav: settingsElement,
+    series: seriesActionsElement,
+    library: libraryActionsElement,
+})
 
-                let navBar
-                if (element.nodeName == 'APP-NAV-HEADER') {
-                    navBar = element.firstElementChild?.firstElementChild
-                } else if (element.nodeName == 'NAV') {
-                    navBar = element.firstElementChild
-                }
-
-                if (navBar) {
-                    navBar.insertBefore(settingsElement.value, navBar.children[4])
-                }
-
-                let buttons = Array.from(element.getElementsByTagName('button'))
-                let editSeriesButton = buttons.find(elem => elem.getAttribute('id') == 'edit-btn--komf')
-                if (editSeriesButton) {
-                    editSeriesButton.parentElement?.insertAdjacentElement('afterend', seriesActionsElement.value)
-                }
-              let libraryFilterButton = buttons.find(elem => elem.getAttribute('id') == 'filter-btn--komf')
-                if (libraryFilterButton && libraryFilterButton.parentElement) {
-                    libraryActionsElement.value = libraryFilterButton.parentElement
-                }
-            }
-        }
-    }
-)
-observer.observe(document, { childList: true, subtree: true })
+// Kavita's UI is always dark
+const { refresh: refreshTheme } = useHostTheme(hostDarkProbe('kavita'))
 </script>
-<style scoped lang="scss">
-.settings-button:hover {
-  border: 2px solid white;
-  border-radius: 20%;
-}
-
-.settings-button {
-  border: 2px solid transparent;
-  border-radius: 20%;
-  padding: 6px 12px 6px 12px;
-}
-</style>

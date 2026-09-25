@@ -1,6 +1,6 @@
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" :persistent="loading" @keyup.enter="handleEnterKeyPress">
-    <q-card class="q-dialog-plugin" style="max-width: 820px; width: 820px">
+    <q-card class="q-dialog-plugin identify-dialog" :style="cardStyle">
       <q-card-section>
 
         <div class="text-h6 gt-xs q-pb-lg">
@@ -141,6 +141,22 @@ const props = defineProps({
 const $q = useQuasar()
 const settings = useSettingsStore()
 
+// Pin the dialog size/theme inline: host CSS (Tailwind preflight or a stale
+// injected copy) can defeat external rules — inline !important always wins.
+// The dark palette follows the Quasar dark state (kept in sync by the host
+// theme probe), so the panel is correct even if the [data-komf-theme] marker
+// or the global override sheet failed to apply on this host.
+const cardStyle = computed(() => {
+  const dark = $q.dark.isActive
+  return {
+    maxWidth: '820px',
+    width: '820px !important',
+    ...(dark
+      ? { background: '#131316 !important', color: '#f4f4f5 !important' }
+      : {}),
+  }
+})
+
 const search = ref(true)
 const results = ref(false)
 const loading = ref(false)
@@ -159,23 +175,34 @@ const seriesId = computed(() => {
 })
 const isOneshot = computed(() => window.location.pathname.split('/').includes('oneshot'))
 
-const libraryId = computed(() => {
+const libraryId = ref<string | undefined>()
+
+async function resolveLibraryId() {
     if (settings.mediaServer == MediaServer.Komga) {
-        return Array.from(document.querySelector('.v-main__wrap .v-toolbar__content')?.children ?? [])
-            .find(el => {
-                let link = el.getAttribute('href')
-                if (!link) return false
-                return /\/libraries.*/.test(link)
-            })?.getAttribute('href')!.split('/')[2]
+        // Komga and kmweb library pages carry the id in the URL
+        const pathTokens = window.location.pathname.split('/')
+        const libraryIdx = pathTokens.findIndex(el => el == 'libraries')
+        if (libraryIdx > 0) {
+            libraryId.value = pathTokens[libraryIdx + 1]
+            return
+        }
+        // Detail pages (/series/:id, /oneshot/:id) don't; fetch it from the API
+        try {
+            const resp = await fetch(`/api/v1/series/${seriesId.value}`, { credentials: 'include' })
+            if (resp.ok) {
+                const s = await resp.json()
+                libraryId.value = s.libraryId
+            }
+        } catch (_e) { /* optional */ }
     } else {
-        let pathTokens = window.location.pathname.split('/')
+        const pathTokens = window.location.pathname.split('/')
         if (pathTokens[1] == 'library') {
-            return pathTokens[2]
-        } else {
-            return undefined
+            libraryId.value = pathTokens[2]
         }
     }
-})
+}
+
+resolveLibraryId()
 
 async function dialogConfirm() {
     loading.value = true

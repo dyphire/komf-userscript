@@ -1,5 +1,5 @@
 <template>
-  <q-menu class="text-body2 text-weight-medium">
+  <q-menu class="text-body2 text-weight-medium" @before-show="syncTheme">
     <q-item clickable @click="promptIdentifySeries" v-close-popup>
       <q-item-section no-wrap>Identify</q-item-section>
     </q-item>
@@ -24,56 +24,47 @@ import type KomfMetadataService from '../services/komf-metadata.service'
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue'
 import IdentifySeriesDialog from '@/components/IdentifySeriesDialog.vue'
 import { komfMetadataKey } from '@/injection-keys'
-import MediaServer from '@/types/mediaServer'
 import { useQuasar } from 'quasar'
 import { errorNotification } from '@/errorNotification'
-import { useSettingsStore } from '@/stores/settings'
+import { hostDarkProbe, detectHost } from '@/host'
+import { useHostTheme } from '@/composables/useHostTheme'
 
 const $q = useQuasar()
+
+// Keep the Quasar dark state in sync with the host each time this menu opens,
+// so a theme flip on the host page is reflected immediately.
+const { refresh: syncTheme } = useHostTheme(hostDarkProbe(detectHost(document.title)))
+
 const metadataService = inject<KomfMetadataService>(komfMetadataKey) as KomfMetadataService
-const settings = useSettingsStore()
 
 const loading = ref(false)
-
-function seriesTitle() {
-    if (settings.mediaServer == MediaServer.Komga) {
-        return (
-            (
-                document.querySelector('.v-main__wrap .v-toolbar__content .v-toolbar__title span') ||
-                document.querySelector('.v-main__wrap .container--fluid .container span.text-h6')
-            ) as HTMLElement
-        ).innerText
-    }
-    else
-        return (document.querySelector('app-series-detail .info-container div h4 span') as HTMLElement).innerText
-}
 
 function seriesId() {
     let path = window.location.pathname.split('/')
     return path[path.findIndex(el => el == 'series' || el == 'oneshot') + 1]
 }
 
-function libraryId() {
-    if (settings.mediaServer == MediaServer.Komga) {
-        return Array.from(document.querySelector('.v-main__wrap .v-toolbar__content')?.children ?? [])
-            .find(el => {
-                let link = el.getAttribute('href')
-                if (!link) return false
-                return /\/libraries.*/.test(link)
-            })!.getAttribute('href')!.split('/')[2]
-    } else {
-        let pathTokens = window.location.pathname.split('/')
-        return pathTokens[pathTokens.findIndex(el => el == 'library') + 1]
-    }
+async function resolveContext() {
+    return metadataService.resolveSeriesContext(seriesId())
 }
 
 function promptIdentifySeries() {
-    $q.dialog({
-        component: IdentifySeriesDialog,
+    resolveContext().then(({ title }) => {
+        $q.dialog({
+            component: IdentifySeriesDialog,
 
-        componentProps: {
-            seriesTitle: seriesTitle()
-        }
+            componentProps: {
+                seriesTitle: title || ''
+            }
+        })
+    }).catch(() => {
+        $q.dialog({
+            component: IdentifySeriesDialog,
+
+            componentProps: {
+                seriesTitle: ''
+            }
+        })
     })
 }
 
@@ -95,7 +86,9 @@ function promptResetSeries() {
 
 async function resetSeries() {
     try {
-        await metadataService?.resetSeries(libraryId(), seriesId())
+        const { libraryId } = await resolveContext()
+        if (!libraryId) throw new Error('Could not resolve library id')
+        await metadataService?.resetSeries(libraryId, seriesId())
     } catch (e) {
         errorNotification(e, $q)
     }
@@ -104,7 +97,9 @@ async function resetSeries() {
 async function autoIdentify() {
     loading.value = true
     try {
-        await metadataService.matchSeries(libraryId(), seriesId())
+        const { libraryId } = await resolveContext()
+        if (!libraryId) throw new Error('Could not resolve library id')
+        await metadataService.matchSeries(libraryId, seriesId())
     } catch (e) {
         errorNotification(e, $q)
     }

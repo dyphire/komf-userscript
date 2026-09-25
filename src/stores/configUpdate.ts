@@ -953,27 +953,12 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
     }
 
     function getLibraries() {
+        // Library lists must always come from the media server API — parsing
+        // the host DOM is unreliable across web UIs (kmweb is React/Tailwind,
+        // Komga is Vuetify, kmrs serves kmweb). All Komga-compatible hosts
+        // expose GET /api/v1/libraries; results arrive asynchronously and
+        // flow into the reactive `libraries` ref that the settings panels bind.
         if (settings.mediaServer == MediaServer.Komga) {
-            try {
-                const seen = new Set()
-                const libs = Array.from(document.querySelectorAll('a[href^="/libraries/"]')).map((el: any) => {
-                    const href = el.getAttribute('href') || ''
-                    const m = href.match(/^\/libraries\/([^/?]+)/)
-                    return m ? { id: m[1], name: (el.textContent || '').trim() } : null
-                }).filter((x: any) => x && x.id && x.name && !seen.has(x.id) && (seen.add(x.id), true)) as { id: string, name: string }[]
-                if (libs.length > 0) return libs
-            } catch (e) { /* ignore */ }
-            try {
-                const drawer = document.getElementsByClassName('v-navigation-drawer__content')[0]
-                const links = drawer ? drawer.getElementsByTagName('a') : []
-                const libs2 = Array.from(links).filter((el: any) =>
-                    el.classList.contains('v-list-item--dense') && /\/libraries.*/.test(el.getAttribute('href'))
-                ).map((el: any) => {
-                    const pathTokens = el.getAttribute('href').split('/')
-                    return { id: pathTokens[pathTokens.findIndex((el2: any) => el2 == 'libraries') + 1], name: el.text }
-                })
-                if (libs2.length > 0) return libs2
-            } catch (e) { /* ignore */ }
             fetch('/api/v1/libraries', { credentials: 'include' })
                 .then((resp) => resp.ok ? resp.json() : Promise.reject(new Error('unauthorized')))
                 .then((apiLibs) => {
@@ -984,10 +969,10 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                 .catch(() => {})
             return []
         } else {
-            // Kavita: try API first (sync XHR with JWT from localStorage), then DOM fallback
+            // Kavita: API only — async fetch with the JWT from localStorage,
+            // same shape as the Komga branch (DOM scraping removed).
             try {
                 let jwt = ''
-                // Kavita stores JWT in localStorage
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i)!
                     const val = localStorage.getItem(key) || ''
@@ -1001,51 +986,22 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                     } catch (_e) { /* not JSON */ }
                 }
                 if (jwt) {
-                    const xhr = new XMLHttpRequest()
-                    xhr.open('GET', '/api/Library/libraries', false) // sync
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + jwt)
-                    xhr.setRequestHeader('Accept', 'application/json')
-                    xhr.send()
-                    if (xhr.status === 200) {
-                        const apiLibs = JSON.parse(xhr.responseText)
-                        if (Array.isArray(apiLibs) && apiLibs.length > 0) {
-                            return apiLibs.map((l: any) => ({ id: String(l.id), name: l.name }))
-                        }
-                    }
-                }
-            } catch (e) { /* ignore API errors */ }
-            // DOM fallback
-            try {
-                const seen2 = new Set()
-                const libs3 = Array.from(document.querySelectorAll('a[href^="/library/"]')).map((el: any) => {
-                    const href = el.getAttribute('href') || ''
-                    // only numeric library IDs, skip /library/settings, /library/reader etc.
-                    const m = href.match(/^\/library\/(\d+)/)
-                    return m ? { id: m[1], name: (el.textContent || '').trim() } : null
-                }).filter((x: any) => x && x.id && x.name && !seen2.has(x.id) && (seen2.add(x.id), true)) as { id: string, name: string }[]
-                if (libs3.length > 0) return libs3
-            } catch (e) { /* ignore */ }
-            try {
-                const nav = document.getElementsByTagName('app-side-nav')[0]
-                if (nav) {
-                    const libs4 = Array.from(nav.getElementsByTagName('a'))
-                        .filter(el => el.classList.contains('side-nav-item') &&
-                            /\/library\/\d+/.test(el.getAttribute('href')!))
-                        .map(el => {
-                            let pathTokens = el.getAttribute('href')!.split('/')
-                            return {
-                                id: pathTokens[pathTokens.findIndex(el => el == 'library') + 1],
-                                name: Array.from(el.getElementsByTagName('span'))
-                                    .find(span => span.classList.contains('side-nav-text'))?.textContent ?? ''
+                    fetch('/api/Library/libraries', {
+                        headers: { 'Authorization': 'Bearer ' + jwt, 'Accept': 'application/json' }
+                    })
+                        .then((resp) => resp.ok ? resp.json() : Promise.reject(new Error('unauthorized')))
+                        .then((apiLibs) => {
+                            if (Array.isArray(apiLibs) && apiLibs.length > 0) {
+                                libraries.value = apiLibs.map((l: any) => ({ id: String(l.id), name: l.name }))
                             }
                         })
-                    if (libs4.length > 0) return libs4
+                        .catch(() => {})
+                    return []
                 }
-            } catch (e) { /* ignore */ }
+            } catch (e) { /* ignore API errors */ }
             return []
         }
     }
-
     function equalArrays(a1: any[], a2: any[]): boolean {
         return a1.length == a2.length && a1.every((elem, index) => elem == a2[index])
     }

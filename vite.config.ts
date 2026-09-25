@@ -21,7 +21,7 @@ export default defineConfig({
         postcss: {
             plugins: [
                 purgecss({
-                    safelist: [/^(?!h[1-6]).*$/],
+                    safelist: [/^(?!h[1-6]).*$/, /^q-/],
                 })
             ],
 
@@ -29,6 +29,8 @@ export default defineConfig({
     },
     build: {
         minify: false,
+        // inline font assets (mdi webfont) into the single-file userscript
+        assetsInlineLimit: 100000000,
         rollupOptions: {
             output: {
                 manualChunks: undefined,
@@ -38,6 +40,8 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),
+            // @quasar/extras' "exports" map hides the css file; alias it directly
+            'mdi-v6.css': fileURLToPath(new URL('./node_modules/@quasar/extras/mdi-v6/mdi-v6.css', import.meta.url)),
         },
     },
 })
