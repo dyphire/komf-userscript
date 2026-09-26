@@ -93,52 +93,55 @@
                         >
                           <q-card>
                             <q-card-section class="q-pa-sm">
-                              <q-expansion-item dense
-                                                dense-toggle
-                                                expand-separator
-                                                label="Series Metadata"
-                              >
+<q-expansion-item dense
+                                              dense-toggle
+                                              expand-separator
+                                              label="Series Metadata"
+                                            >
 
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.ageRating"
-                                            label="Age Rating"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.authors"
-                                            label="Authors"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.thumbnail"
-                                            label="Cover"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.genres"
-                                            label="Genres"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.language"
-                                            label="Language"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.links"
-                                           label="Links"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.publisher"
-                                            label="Publisher"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.useOriginalPublisher"
-                                            label="Use Original Publisher"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.releaseDate"
-                                            label="Release Date"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.status"
-                                            label="Status"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.summary"
-                                            label="Summary"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.tags" label="Tags" />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.title"
-                                            label="Title"
-                                />
-                                <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.totalBookCount"
-                                            label="Book Count"
-                                />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.ageRating"
+                                                        label="Age Rating"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.authors"
+                                                        label="Authors"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.thumbnail"
+                                                        label="Cover"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.genres"
+                                                        label="Genres"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.language"
+                                                        label="Language"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.links"
+                                                       label="Links"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.publisher"
+                                                        label="Publisher"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.useOriginalPublisher"
+                                                        label="Use Original Publisher"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.releaseDate"
+                                                        label="Release Date"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.status"
+                                                        label="Status"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.summary"
+                                                        label="Summary"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.tags" label="Tags" />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.title"
+                                                        label="Title"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.totalBookCount"
+                                                        label="Book Count"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.score"
+                                                        label="Score"
+                                            />
                               </q-expansion-item>
 
                               <q-expansion-item dense
@@ -625,68 +628,72 @@
                       >
                         <q-card>
                           <q-card-section class="q-pa-sm">
-                            <q-expansion-item dense
+<q-expansion-item dense
                                               dense-toggle
                                               expand-separator
                                               label="Series Metadata"
-                            >
+                                            >
 
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.ageRating"
-                                label="Age Rating"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.authors"
-                                label="Authors"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.thumbnail"
-                                label="Cover"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.genres"
-                                label="Genres"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.language"
-                                label="Language"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.links"
-                               label="Links"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.publisher"
-                                label="Publisher"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.useOriginalPublisher"
-                                label="Use Original Publisher"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.releaseDate"
-                                label="Release Date"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.status"
-                                label="Status"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.summary"
-                                label="Summary"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.tags"
-                                label="Tags"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.title"
-                                label="Title"
-                              />
-                              <q-checkbox
-                                v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.totalBookCount"
-                                label="Book Count"
-                              />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.ageRating"
+                                              label="Age Rating"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.authors"
+                                              label="Authors"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.thumbnail"
+                                              label="Cover"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.genres"
+                                              label="Genres"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.language"
+                                              label="Language"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.links"
+                                             label="Links"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.publisher"
+                                              label="Publisher"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.useOriginalPublisher"
+                                              label="Use Original Publisher"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.releaseDate"
+                                              label="Release Date"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.status"
+                                              label="Status"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.summary"
+                                              label="Summary"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.tags"
+                                              label="Tags"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.title"
+                                              label="Title"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.totalBookCount"
+                                              label="Book Count"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.score"
+                                              label="Score"
+                                            />
                             </q-expansion-item>
 
                             <q-expansion-item dense

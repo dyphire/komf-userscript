@@ -20,6 +20,7 @@ export interface KomgaConfigUpdateDto {
     komgaUser?: string,
     komgaPassword?: string,
     apiKey?: string,
+    komgaApiKey?: string,
     eventListener?: EventListenerConfigUpdateDto,
     notifications?: NotificationConfigUpdateDto,
     metadataUpdate?: MetadataUpdateConfigUpdateDto,
@@ -124,6 +125,11 @@ export interface MetadataPostProcessingConfigUpdateDto {
     linksMatchEnabled?: boolean
 }
 
+export interface MangaBakaDatabaseDto {
+    downloadTimestamp: string,
+    checksum: string,
+}
+
 export interface MetadataProvidersConfigUpdateDto {
     malClientId?: string,
     comicVineClientId?: string,
@@ -134,6 +140,8 @@ export interface MetadataProvidersConfigUpdateDto {
     nameMatchingMode?: string,
     defaultProviders?: ProvidersConfigUpdateDto,
     libraryProviders?: Record<string, ProvidersConfigUpdateDto>,
+    mangaBakaDatabase?: MangaBakaDatabaseDto,
+    bookWalkerDownloadDate?: string | null,
 }
 
 export interface ProvidersConfigUpdateDto {
@@ -205,7 +213,8 @@ export interface SeriesMetadataConfigUpdateDto {
     thumbnail?: boolean
     books?: boolean
     useOriginalPublisher?: boolean
-    links?: boolean,
+    links?: boolean
+    score?: boolean
 
     originalPublisherTagName?: string
     englishPublisherTagName?: string
@@ -355,6 +364,8 @@ export interface MetadataProvidersConfigDto {
     nameMatchingMode: string,
     defaultProviders: ProvidersConfigDto,
     libraryProviders: Record<string, ProvidersConfigDto>,
+    mangaBakaDatabase?: MangaBakaDatabaseDto,
+    bookWalkerDownloadDate?: string | null,
 }
 
 export interface ProvidersConfigDto {
@@ -438,6 +449,7 @@ export interface SeriesMetadataConfigDto {
     links: boolean
     books: boolean
     useOriginalPublisher: boolean
+    score: boolean
 
     originalPublisherTagName?: string
     englishPublisherTagName?: string
@@ -473,6 +485,7 @@ export class DefaultSeriesMetadataConfig implements SeriesMetadataConfigDto {
     title: boolean = true
     totalBookCount: boolean = true
     useOriginalPublisher: boolean = false
+    score: boolean = false
 }
 
 export class DefaultBookMetadataConfig implements BookMetadataConfigDto {
