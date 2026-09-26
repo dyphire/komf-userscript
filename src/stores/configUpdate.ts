@@ -884,6 +884,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.status = updated.status
         if (updated.title != current?.title)
             changes.title = updated.title
+        if (updated.alternativeTitles != current?.alternativeTitles)
+            changes.alternativeTitles = updated.alternativeTitles
         if (updated.summary != current?.summary)
             changes.summary = updated.summary
         if (updated.publisher != current?.publisher)
@@ -912,6 +914,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.links = updated.links
         if (updated.useOriginalPublisher != current?.useOriginalPublisher)
             changes.useOriginalPublisher = updated.useOriginalPublisher
+        if (updated.score != current?.score)
+            changes.score = updated.score
         if (updated.originalPublisherTagName != current?.originalPublisherTagName)
             changes.originalPublisherTagName = updated.originalPublisherTagName
         if (updated.englishPublisherTagName != current?.englishPublisherTagName)
