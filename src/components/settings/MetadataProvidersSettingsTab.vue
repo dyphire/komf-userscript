@@ -133,8 +133,11 @@
                                                         label="Summary"
                                             />
                                             <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.tags" label="Tags" />
-                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.title"
-                                                        label="Title"
+<q-checkbox v-model="config.defaultProviders[index].seriesMetadata.title"
+                                                    label="Title"
+                                            />
+                                            <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.alternativeTitles"
+                                                    label="Alternative Titles"
                                             />
                                             <q-checkbox v-model="config.defaultProviders[index].seriesMetadata.totalBookCount"
                                                         label="Book Count"
@@ -685,6 +688,10 @@
                                             <q-checkbox
                                               v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.title"
                                               label="Title"
+                                            />
+                                            <q-checkbox
+                                              v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.alternativeTitles"
+                                              label="Alternative Titles"
                                             />
                                             <q-checkbox
                                               v-model="config.libraryProviders[libraryIndex].providers[index].seriesMetadata.totalBookCount"

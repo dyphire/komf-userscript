@@ -200,6 +200,7 @@ export interface ProviderConfigUpdateDto {
 export interface SeriesMetadataConfigUpdateDto {
     status?: boolean
     title?: boolean
+    alternativeTitles?: boolean
     summary?: boolean
     publisher?: boolean
     readingDirection?: boolean
@@ -435,6 +436,7 @@ export interface ProviderConfigDto {
 export interface SeriesMetadataConfigDto {
     status: boolean
     title: boolean
+    alternativeTitles: boolean
     summary: boolean
     publisher: boolean
     readingDirection: boolean
@@ -470,6 +472,7 @@ export interface BookMetadataConfigDto {
 
 export class DefaultSeriesMetadataConfig implements SeriesMetadataConfigDto {
     ageRating: boolean = true
+    alternativeTitles: boolean = true
     authors: boolean = true
     books: boolean = true
     genres: boolean = true
