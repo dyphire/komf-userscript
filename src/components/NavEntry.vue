@@ -16,17 +16,16 @@ import { computed } from 'vue'
 import { mdiSvgPaths } from '@/mdi-svg-paths'
 
 /**
- * Shared sidebar entry for all three hosts. Renders a native <button> +
- * inline SVG (Phosphor puzzlePiece, matching kmweb's icon style) so the entry
- * aligns pixel-perfectly with the host's own nav items — previously each View
- * hand-rolled its own entry (q-btn / native button) with divergent markup.
+ * Shared sidebar entry for all hosts. Renders a native <button> +
+ * inline SVG (Phosphor puzzlePiece) so the entry aligns pixel-perfectly
+ * with the host's own nav items — previously each View hand-rolled its own
+ * entry (q-btn / native button) with divergent markup.
  *
  * Visual metrics are host-specific and driven by the variant modifier class:
- *   --kmweb : 36px row / 18px icon / 13.5px label
  *   --komga : 48px row / 24px icon / 16px label   (Vuetify v-list-item)
  *   --kavita: icon-only 22px button / ~40px touch target (Kavita toolbar)
  */
-export type NavEntryVariant = 'kmweb' | 'komga' | 'kavita'
+export type NavEntryVariant = 'komga' | 'kavita'
 
 const props = withDefaults(
   defineProps<{

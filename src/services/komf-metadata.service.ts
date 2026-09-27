@@ -118,10 +118,10 @@ export default class KomfMetadataService {
     /**
      * Resolve the current series context (libraryId + title).
      *
-     * Komga (and kmrs/kmweb, which exposes the same API): prefer the library id
-     * from the URL when present (`/libraries/:id/...`), otherwise fall back to
-     * the Komga API since detail pages (`/series/:id`, `/oneshot/:id`) do not
-     * carry the library id in the path. Kavita keeps the original DOM logic.
+     * Komga: prefer the library id from the URL when present
+     * (`/libraries/:id/...`), otherwise fall back to the Komga API since
+     * detail pages (`/series/:id`, `/oneshot/:id`) do not carry the library
+     * id in the path. Kavita keeps the original DOM logic.
      */
     async resolveSeriesContext(seriesId: string): Promise<{ libraryId?: string, title?: string }> {
         if (this.settings.mediaServer == MediaServer.Kavita) {

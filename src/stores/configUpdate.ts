@@ -958,10 +958,9 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
 
     function getLibraries() {
         // Library lists must always come from the media server API — parsing
-        // the host DOM is unreliable across web UIs (kmweb is React/Tailwind,
-        // Komga is Vuetify, kmrs serves kmweb). All Komga-compatible hosts
-        // expose GET /api/v1/libraries; results arrive asynchronously and
-        // flow into the reactive `libraries` ref that the settings panels bind.
+        // the host DOM is unreliable across web UIs (Komga is Vuetify).
+        // Komga exposes GET /api/v1/libraries; results arrive asynchronously
+        // and flow into the reactive `libraries` ref that the settings panels bind.
         if (settings.mediaServer == MediaServer.Komga) {
             fetch('/api/v1/libraries', { credentials: 'include' })
                 .then((resp) => resp.ok ? resp.json() : Promise.reject(new Error('unauthorized')))

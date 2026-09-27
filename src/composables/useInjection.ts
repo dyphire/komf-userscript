@@ -24,15 +24,15 @@ export interface InjectionPoint {
 
 /**
  * Shared MutationObserver driver for injecting Teleport containers into host
- * DOM. Replaces the three hand-rolled observers (KomgaView / KavitaView /
- * KmwebView) with one runner that:
+ * DOM. Replaces the hand-rolled observers (KomgaView / KavitaView) with one
+ * runner that:
  *   - scans all injection points on each mutation (and once on mount),
  *   - mounts each point exactly once (isConnected / mounted-set guard),
  *   - disconnects + clears on unmount.
  *
  * Each View still supplies its own `locate` closures (host structure differs
  * too much to abstract further — Komga uses DOM indices, Kavita matches
- * element tags/ids, kmweb uses selectors).
+ * element tags/ids).
  */
 export function useInjection(
   points: InjectionPoint[],

@@ -5,18 +5,16 @@
  * gets base64-inlined into the userscript), we map the exact icons Komf uses
  * to their SVG path data and let Quasar's QIcon render them as inline SVG via
  * `iconMapFn`. This removes the font dependency entirely, so icons render on
- * Komga, Kavita and kmweb alike, and keeps the bundle ~1.4MB instead of ~3MB.
+ * Komga and Kavita alike, and keeps the bundle ~1.4MB instead of ~3MB.
  *
  * Keys are the icon name without the `mdi-` prefix (kebab-case), matching the
  * `icon="mdi-xxx"` attributes used in templates.
  *
- * Icon style: on the kmweb host the sidebar and every control use Phosphor
- * Icons (@phosphor-icons/react, MIT) — a thin, rounded, linear family. The
- * icons Komf renders in the kmweb settings dialog (navigation tabs, side-bar
- * entry, action buttons, select carets) therefore use Phosphor "regular"
- * paths (256px viewBox) so they match the host UI. Icons that only appear on
- * the Komga/Kavita pages keep their original mdi paths. Each Phosphor value
- * carries its own viewBox via QIcon's `path||viewBox` syntax.
+ * Icon style: Komf uses Phosphor Icons (@phosphor-icons/react, MIT) — a thin,
+ * rounded, linear family — "regular" paths (256px viewBox) for navigation
+ * tabs, side-bar entry, action buttons and select carets. Icons that only
+ * appear on the Komga/Kavita pages keep their original mdi paths. Each
+ * Phosphor value carries its own viewBox via QIcon's `path||viewBox` syntax.
  */
 import {
   mdiAlertCircle,

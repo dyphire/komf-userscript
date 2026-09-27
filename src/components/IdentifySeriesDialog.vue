@@ -179,7 +179,7 @@ const libraryId = ref<string | undefined>()
 
 async function resolveLibraryId() {
     if (settings.mediaServer == MediaServer.Komga) {
-        // Komga and kmweb library pages carry the id in the URL
+        // Komga library pages carry the id in the URL
         const pathTokens = window.location.pathname.split('/')
         const libraryIdx = pathTokens.findIndex(el => el == 'libraries')
         if (libraryIdx > 0) {

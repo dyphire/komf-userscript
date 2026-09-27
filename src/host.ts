@@ -1,33 +1,29 @@
 /** Host detection shared by main.ts (Quasar CSS injection) and App.vue
  *  (View selection + data-komf-host marker). Stump is recognized for the
  *  marker only — no View renders until proper support lands. */
-export type KomfHost = 'komga' | 'kavita' | 'kmweb' | 'stump' | ''
+export type KomfHost = 'komga' | 'kavita' | 'stump' | ''
 
 export function detectHost(title: string): KomfHost {
   if (title == 'Komga') return 'komga'
   if (title == 'Kavita') return 'kavita'
-  if (title.includes('KMReader')) return 'kmweb'
   if (title == 'Stump') return 'stump'
   return ''
 }
 
 /** Hosts that render Komf UI (Quasar dialog etc.). Unknown/not-yet-supported
  *  hosts (Stump) must NOT get Quasar's global CSS. */
-export const CSS_HOSTS: readonly KomfHost[] = ['komga', 'kavita', 'kmweb']
+export const CSS_HOSTS: readonly KomfHost[] = ['komga', 'kavita']
 
 /**
  * Single per-host "is the host page dark right now?" probe, shared by the
- * three Views' useHostTheme and App.vue's dialog-open refresh. Each host has
+ * two Views' useHostTheme and App.vue's dialog-open refresh. Each host has
  * its own signal: Komga stamps theme--dark on <html> or .v-application (with
- * a Vuex localStorage fallback), Kavita is always dark, kmweb toggles
- * <html class="dark|light">.
+ * a Vuex localStorage fallback), Kavita is always dark.
  */
 export function hostDarkProbe(host: KomfHost | null, fallbackDark = false): () => boolean {
   switch (host) {
     case 'kavita':
       return () => true
-    case 'kmweb':
-      return () => document.documentElement.classList.contains('dark')
     case 'komga':
       return () => {
         // Vuetify 2 stamps theme--dark on <html> or .v-application; Vuetify 3

@@ -1,14 +1,12 @@
 <template>
   <KomgaView v-if="komga" />
   <KavitaView v-if="kavita" />
-  <KmwebView v-if="kmweb" />
 </template>
 
 <script setup lang="ts">
 import { useSettingsStore } from '@/stores/settings'
 import MediaServer from '@/types/mediaServer'
 import KomgaView from '@/KomgaView.vue'
-import KmwebView from '@/KmwebView.vue'
 import { onBeforeUnmount, ref } from 'vue'
 import KavitaView from '@/KavitaView.vue'
 import { useQuasar } from 'quasar'
@@ -22,7 +20,6 @@ const settings = useSettingsStore()
 const title = document.title
 const komga = ref(false)
 const kavita = ref(false)
-const kmweb = ref(false)
 
 // Stump is recognized for the marker only; no View renders until proper
 // support lands (komf supports Stump server-side).
@@ -111,11 +108,6 @@ if (title == 'Komga') {
     kavita.value = true
     settings.mediaServer = MediaServer.Kavita
     $q.iconSet.set(fontAwesomeIconSet)
-} else if (title.includes('KMReader')) {
-    // kmrs serves kmweb: Komga-compatible API with a React/Tailwind UI
-    kmweb.value = true
-    settings.mediaServer = MediaServer.Komga
-    $q.iconSet.set(mdiIconSet)
 }
 
 </script>

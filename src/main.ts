@@ -19,11 +19,10 @@ import KomfConfigService from '@/services/komf-config.service'
 const host = detectHost(document.title)
 if (host && CSS_HOSTS.includes(host)) {
   // Quasar's unlayered utility classes leak onto the host page. Worst case:
-  // .hidden { display: none !important } permanently beats Tailwind's
-  // responsive display utilities (aside "hidden lg:block" sidebar, toolbar
-  // buttons using hidden md:inline-flex), because unlayered rules outrank
-  // @layer utilities. Scope the generic utilities to the Komf UI roots
-  // (#komf + Quasar portals) so they only apply inside the injected UI.
+  // .hidden { display: none !important } permanently beats the host's
+  // responsive display utilities, because unlayered rules outrank layered
+  // ones. Scope the generic utilities to the Komf UI roots (#komf + Quasar
+  // portals) so they only apply inside the injected UI.
   const ROOTS = ['#komf', '[id^="q-portal--"]']
   const scope = (sel: string) => ROOTS.map((r) => `${r} ${sel}`).join(', ')
   let css = quasarCss

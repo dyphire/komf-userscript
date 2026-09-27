@@ -19,9 +19,8 @@ export interface ThemeWatch {
  * Single entry point for keeping Quasar's dark mode in sync with the host.
  *
  * Each host has its own theme signal (Komga reads its Vuex localStorage,
- * Kavita is always dark, kmweb toggles <html class="dark|light">). Previously
- * every View hand-rolled this — KomgaView parsed localStorage, KavitaView
- * hard-coded `$q.dark.set(true)`, KmwebView ran a second MutationObserver.
+ * Kavita is always dark). Previously every View hand-rolled this — KomgaView
+ * parsed localStorage, KavitaView hard-coded `$q.dark.set(true)`.
  *
  * Usage:
  *   useHostTheme(() => document.documentElement.classList.contains('dark'),

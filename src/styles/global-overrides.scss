@@ -4,12 +4,12 @@
    Selector strategy (refactor A):
    - `[data-komf-theme='dark'|'light']` — script-owned theme marker stamped
      on <html> by useHostTheme (hosts differ: Komga reads its Vuex storage,
-     Kavita is always dark, kmweb toggles <html class="dark|light">).
-   - `[data-komf-host='kmweb'|'komga'|'kavita']` — script-owned host marker
-     stamped by App.vue; used only for host-page restore rules (kmweb page).
+     Kavita is always dark).
+   - `[data-komf-host='komga'|'kavita']` — script-owned host marker stamped
+     by App.vue.
    - Dialog/portal rules (inside [id^='q-portal--']) are host-agnostic: the
      Komf settings dialog renders identically on every host, so one rule set
-     now serves Komga, Kavita and kmweb alike.
+     now serves Komga and Kavita alike.
    ===================================================================== */
 
 /* ---- Komga / Kavita Bootstrap collision patches --------------------
@@ -55,16 +55,6 @@
   color: unset !important;
 }
 
-/* ---- kmweb integration hooks ---- */
-#komf .kmweb-integration {
-  display: contents;
-}
-
-#komf .kmweb-integration .q-btn {
-  border-radius: 8px;
-  font-size: 13px;
-}
-
 /* ---- Komf UI typography (host-agnostic: the injected UI is always
         Quasar's Roboto; host page fonts are restored further down) ---- */
 #komf,
@@ -77,11 +67,9 @@
 }
 
 /* ---- Dialog token set --------------------------------------------------
-   The dialog styling below uses kmweb's design tokens (--surface, --ink,
-   --accent, …). Those tokens only exist on kmweb's <html>; on Komga/Kavita
-   they resolve empty and every var() would collapse. Define stable --komf-*
-   tokens on every portal with a kmweb-default fallback so ONE rule set
-   serves all hosts (kmweb instance vars still win when present). */
+   Define stable --komf-* tokens on every portal (falling back to host
+   --surface/--ink/--accent/… vars when present) so ONE rule set serves all
+   hosts. */
 [id^='q-portal--'] {
   --komf-accent: var(--accent, #ff9500);
   --komf-accent-strong: var(--accent-strong, #ffb340);
@@ -217,7 +205,7 @@
   min-height: 44px;
 }
 
-/* ---- Dialog theme (kmweb look, follows data-komf-theme) ---------------- */
+/* ---- Dialog theme (follows data-komf-theme) ---------------- */
 /* map Quasar's palette to the komf tokens (light and dark share the shape) */
 [data-komf-theme='dark'] [id^='q-portal--'],
 [data-komf-theme='light'] [id^='q-portal--'] {
@@ -241,7 +229,7 @@
   box-shadow: var(--komf-shadow-card);
 }
 
-/* vertical tab rail: plain text nav like the kmweb sidebar */
+/* vertical tab rail: plain text nav */
 [data-komf-theme='dark'] [id^='q-portal--'] .q-tabs--vertical .q-tabs__content,
 [data-komf-theme='light'] [id^='q-portal--'] .q-tabs--vertical .q-tabs__content {
   padding: 8px 6px;
@@ -326,14 +314,14 @@
   color: var(--komf-ink-3);
 }
 
-/* buttons: rounded-lg, sentence case, kmweb tones */
+/* buttons: rounded-lg, sentence case */
 [data-komf-theme='dark'] [id^='q-portal--'] .q-btn,
 [data-komf-theme='light'] [id^='q-portal--'] .q-btn {
   border-radius: 8px;
   text-transform: none;
   font-weight: 500;
 }
-/* solid accent buttons (Save / Check connection): kmweb primary Button —
+/* solid accent buttons (Save / Check connection):
    bg accent, accent-ink text, accent-strong hover, md height, soft shadow */
 [data-komf-theme='dark'] [id^='q-portal--'] .q-btn--standard,
 [data-komf-theme='light'] [id^='q-portal--'] .q-btn--standard {
@@ -351,7 +339,7 @@
 [data-komf-theme='light'] [id^='q-portal--'] .q-card-actions .q-btn--flat {
   color: var(--komf-ink-2);
 }
-/* dialog footer buttons share kmweb's md height */
+/* dialog footer buttons share md height */
 [data-komf-theme='dark'] [id^='q-portal--'] .q-card-actions .q-btn,
 [data-komf-theme='light'] [id^='q-portal--'] .q-card-actions .q-btn {
   min-height: 40px;
@@ -392,11 +380,11 @@
 }
 
 /* ---- Dark mode hard fallback --------------------------------------------
-   MUST stay after all var()-based rules. The branded kmweb instance can pin
+   MUST stay after all var()-based rules. A branded host instance can pin
    --surface/--overlay/--ink-2/--accent-strong & friends to their LIGHT
    values even under html.dark, so Quasar paints white-on-white. Pin every
    color the dialog renders to the stock dark palette with !important.
-   Applies to every host in dark mode (Komga/Kavita get the same palette). */
+   Applies to every host in dark mode. */
 [data-komf-theme='dark'] [id^='q-portal--'] .q-dialog-plugin,
 [data-komf-theme='dark'] [id^='q-portal--'] .q-tab-panel .q-card,
 [data-komf-theme='dark'] [id^='q-portal--'] .q-expansion-item__container {
@@ -503,8 +491,7 @@
 }
 
 /* IdentifySeriesDialog results grid: each result is a nested q-card
-   (.identify-card). Quasar's q-card--dark background does not survive on
-   Tailwind hosts (renders --ink light), so pin the dark palette here too */
+   (.identify-card). Pin the dark palette here too */
 [data-komf-theme='dark'] [id^='q-portal--'] .identify-card {
   background: #1b1b1f !important;
   color: #f4f4f5 !important;
@@ -519,7 +506,7 @@
 
 /* Plugin dialogs must stay centered: Quasar centers .q-dialog__inner via
    the .flex/.flex-center utility classes, whose unlayered layout can be
-   defeated on Tailwind hosts (panel renders full-width, left-aligned). Pin
+   defeated by host CSS (panel renders full-width, left-aligned). Pin
    the flex centering for every plugin dialog. */
 /* Full-viewport centering for every Quasar dialog inner container.
    Plain class selector matches regardless of portal id prefix or nesting;
@@ -542,13 +529,13 @@
 [id^='q-portal--'] .q-dialog__inner > .q-card {
   margin-left: auto !important;
   margin-right: auto !important;
-}/* Viewport-centered card: kmweb's host CSS defeats Quasar's fixed/inset
+}/* Viewport-centered card: host CSS can defeat Quasar's fixed/inset
    dialog centering (inner collapses to content width, left-aligned), so the
    card is pinned to the viewport center directly. 50% + translate(-50%)
    scales together under page zoom. Max bounds are applied by JS with
-   measured pixels (vw/vh units are zoom-distorted on this host). Transitions
-   are killed so Quasar's enter animation cannot tween from the left
-   position to the centered one. */
+   measured pixels (vw/vh units are zoom-distorted under page zoom).
+   Transitions are killed so Quasar's enter animation cannot tween from the
+   left position to the centered one. */
 .q-dialog__inner .q-dialog-plugin {
   position: fixed !important;
   left: 50% !important;
@@ -580,8 +567,8 @@
   }
 }
 /* Belt-and-braces for hosts whose theme marker may not be applied when the
-   dialog opens: match the host's own dark class (kmweb toggles html.dark)
-   directly so plugin dialogs never render light-on-light. */
+   dialog opens: match the host's own dark class (html.dark) directly so
+   plugin dialogs never render light-on-light. */
 html.dark [id^='q-portal--'] .q-dialog__inner .identify-dialog {
   background: #131316 !important;
   color: #f4f4f5 !important;
@@ -596,51 +583,11 @@ html.dark [id^='q-portal--'] .q-dialog-plugin .q-card:not(.identify-card) {
   color: #f4f4f5 !important;
 }
 
-/* ---- kmweb host page restore (only where data-komf-host='kmweb') -------
-   Quasar's unlayered global CSS (typography/colors/flex) overrides kmweb's
-   Tailwind @layer utilities. These rules undo that on the kmweb page only. */
-/* body font: kmweb's --font-sans resolves empty at runtime on this instance,
-   so var() falls back to ui-sans-serif and wipes "Geist Variable" —
-   hardcode kmweb's native stack and leave line-height to Geist's metrics. */
-[data-komf-host='kmweb'] body {
-  font-family: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  font-size: 16px;
-}
-[data-komf-host='kmweb'][data-komf-theme='dark'] body.body--dark {
-  color: var(--ink, #f4f4f5);
-  background: var(--bg, #0b0b0d);
-}
-/* Quasar gives p a bottom margin; Tailwind preflight resets it (page only) */
-[data-komf-host='kmweb'] p:not(#komf p):not([id^='q-portal--'] p) {
-  margin: 0;
-}
-/* Quasar colors override Tailwind's accent utilities (page only) */
-[data-komf-host='kmweb'] .text-accent:not(#komf .text-accent):not([id^='q-portal--'] .text-accent) {
-  color: var(--accent, #ff9500) !important;
-}
-[data-komf-host='kmweb'] .bg-accent:not(#komf .bg-accent):not([id^='q-portal--'] .bg-accent) {
-  background-color: var(--accent, #ff9500) !important;
-}
-/* Quasar's .flex sets flex-wrap: wrap, Tailwind's does not (page only) */
-[data-komf-host='kmweb'] .flex:not(#komf .flex):not([id^='q-portal--'] .flex):not(.flex-wrap):not(.flex-nowrap) {
-  flex-wrap: nowrap;
-}
-/* Quasar's unlayered button/input/select/textarea { font: inherit } beats
-   Tailwind utilities (text-[11px], font-medium, tracking…); revert the
-   layer stack so kmweb's utilities win again (exclude Komf UI) */
-[data-komf-host='kmweb'] button:not(#komf button):not([id^='q-portal--'] button),
-[data-komf-host='kmweb'] input:not(#komf input):not([id^='q-portal--'] input),
-[data-komf-host='kmweb'] select:not(#komf select):not([id^='q-portal--'] select),
-[data-komf-host='kmweb'] textarea:not(#komf textarea):not([id^='q-portal--'] textarea) {
-  font: revert-layer;
-  text-transform: revert-layer;
-}
-
 /* ---- Shared nav entry (NavEntry.vue) ------------------------------------
    Native <button> + inline SVG rendered by NavEntry.vue and Teleported into
    the host <nav>, outside #komf — so selectors are bare class names. The
-   variant modifier drives per-host metrics: kmweb 36px/18px/13.5px, komga
-   48px/24px/16px (Vuetify v-list-item), kavita icon-only 14px glyph. */
+   variant modifier drives per-host metrics: komga 48px/24px/16px
+   (Vuetify v-list-item), kavita icon-only 14px glyph. */
 .komf-nav-entry {
   display: flex !important;
   align-items: center !important;
@@ -655,34 +602,6 @@ html.dark [id^='q-portal--'] .q-dialog-plugin .q-card:not(.identify-card) {
 .komf-nav-entry .komf-nav-icon {
   flex: none !important;
   fill: currentColor !important;
-}
-
-/* kmweb: 36px row / 18px icon / 13.5px label, kmweb hover tones */
-.komf-nav-entry--kmweb {
-  gap: 12px !important;
-  padding: 8px 12px !important;
-  min-height: 36px !important;
-  font-size: 13.5px !important;
-  line-height: 18px !important;
-  border-radius: 8px !important;
-}
-.komf-nav-entry--kmweb .komf-nav-icon {
-  width: 18px !important;
-  height: 18px !important;
-}
-html.light .komf-nav-entry--kmweb {
-  color: #5c5c62 !important;
-}
-html.light .komf-nav-entry--kmweb:hover {
-  background: #efefec !important;
-  color: #1c1c1e !important;
-}
-html.dark .komf-nav-entry--kmweb {
-  color: #a6a6ad !important;
-}
-html.dark .komf-nav-entry--kmweb:hover {
-  background: #1b1b1f !important;
-  color: #f4f4f5 !important;
 }
 
 /* komga (Vuetify v-list-item): 48px row / 24px icon / 16px label */
