@@ -193,6 +193,8 @@ export interface ProviderConfigUpdateDto {
     tagsSizeLimit?: number,
     // mangaBaka specific
     mode?: string,
+    // mangaBaka / bookWalker specific
+    updateIntervalHours?: number,
     // mangaDex specific
     links?: string[],
 }
@@ -430,6 +432,8 @@ export interface ProviderConfigDto {
     tagsScoreThreshold?: number,
     tagsSizeLimit?: number,
     mode?: string,
+    // mangaBaka / bookWalker specific
+    updateIntervalHours?: number,
     links?: string[],
 }
 
@@ -509,6 +513,8 @@ export class DefaultProviderConfig implements ProviderConfigDto {
     authorRoles: string[] = ['WRITER']
     artistRoles: string[] = ['PENCILLER', 'INKER', 'COLORIST', 'LETTERER', 'COVER']
     mediaType: string = 'MANGA'
+    // MangaBaka / BookWalker 本地数据库定时更新间隔（小时）；0 = 仅手动下载
+    updateIntervalHours: number = 24
     seriesMetadata: SeriesMetadataConfigDto = new DefaultSeriesMetadataConfig()
     bookMetadata: BookMetadataConfigDto = new DefaultBookMetadataConfig()
 }
@@ -523,7 +529,10 @@ export class DefaultProvidersConfig implements ProvidersConfigDto {
     kodansha: ProviderConfigDto = new DefaultProviderConfig()
     mal: ProviderConfigDto = new DefaultProviderConfig
     mangaUpdates: ProviderConfigDto = new DefaultProviderConfig
-    mangaBaka: ProviderConfigDto = new DefaultProviderConfig()
+    mangaBaka: ProviderConfigDto = {
+        ...new DefaultProviderConfig(),
+        coverLanguages: ['en', 'ja']
+    }
     nautiljon: ProviderConfigDto = new DefaultProviderConfig
     viz: ProviderConfigDto = new DefaultProviderConfig
     yenPress: ProviderConfigDto = new DefaultProviderConfig

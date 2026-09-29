@@ -189,6 +189,15 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
         library: [] as ProcessingLibraryUpdateModel[]
     })
 
+    function providerExtras(key: string, value: ProviderConfigDto) {
+        return {
+            ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
+            ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {}),
+            ...((key === 'mangaBaka' || key === 'bookWalker') && value.updateIntervalHours == undefined ? { updateIntervalHours: 24 } : {}),
+            ...(key === 'mangaBaka' && !value.coverLanguages ? { coverLanguages: ['en', 'ja'] } : {})
+        }
+    }
+
     function reset(config: KomfConfigDto) {
         libraries.value = getLibraries()
         currentConfig.value = structuredClone(config)
@@ -220,8 +229,7 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                 let books = providersWithBooks.includes(key)
                 let mediaType = providersWithMediaType.includes(key)
                 return { ...(value as ProviderConfigDto), name: key, books: books, mediaTypeEnabled: mediaType,
-                    ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
-                    ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {}) }
+                    ...providerExtras(key, value) }
             }).filter(provider => provider.enabled)
 
         metadataProviders.defaultDisabledProviders = Object.entries(config.metadataProviders.defaultProviders)
@@ -229,8 +237,7 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                 let books = providersWithBooks.includes(key)
                 let mediaType = providersWithMediaType.includes(key)
                 return { ...(value as ProviderConfigDto), name: key, books: books, mediaTypeEnabled: mediaType,
-                    ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
-                    ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {}) }
+                    ...providerExtras(key, value) }
             }).filter(provider => !provider.enabled)
             .sort((a, b) => a.name.localeCompare(b.name))
 
@@ -250,16 +257,14 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                                 name: key,
                                 books: books,
                                 mediaTypeEnabled: mediaType,
-                                ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
-                                ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {})
+                                ...providerExtras(key, value)
                             }
                         }).filter(provider => provider.enabled),
                     disabledProviders: Object.entries(value as ProvidersConfigDto).map(([key, value]) => {
                         let books = providersWithBooks.includes(key)
                         let mediaType = providersWithMediaType.includes(key)
                         return { ...value as ProviderConfigDto, name: key, books: books, mediaTypeEnabled: mediaType,
-                            ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
-                            ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {}) }
+                            ...providerExtras(key, value) }
                     }).filter(provider => !provider.enabled)
                         .sort((a, b) => a.name.localeCompare(b.name))
                 }
@@ -711,13 +716,13 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
                     changes.kodansha = getProviderUpdates(current?.kodansha, value)
                     break
                 case 'mangaBaka':
-                    changes.mangaBaka = getProviderUpdates(current?.mangaBaka, value)
+                    changes.mangaBaka = getMangaBakaUpdates(current?.mangaBaka, value)
                     break
                 case 'viz':
                     changes.viz = getProviderUpdates(current?.viz, value)
                     break
                 case 'bookWalker':
-                    changes.bookWalker = getProviderUpdates(current?.bookWalker, value)
+                    changes.bookWalker = getBookWalkerUpdates(current?.bookWalker, value)
                     break
                 case 'mangaDex':
                     changes.mangaDex = getMangaDexUpdates(current?.mangaDex, value)
@@ -762,6 +767,35 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.mediaType = updated.mediaType
         changes.seriesMetadata = getSeriesMetadataUpdates(current?.seriesMetadata, updated.seriesMetadata)
         changes.bookMetadata = getBookMetadataUpdates(current?.bookMetadata, updated.bookMetadata)
+
+        if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
+        else return changes
+    }
+
+    function getMangaBakaUpdates(
+        current: ProviderConfigDto | undefined,
+        updated: ProviderConfigDto
+    ): ProviderConfigUpdateDto | undefined {
+        let changes = getProviderUpdates(current, updated) || {}
+        if (updated.mode != current?.mode)
+            changes.mode = updated.mode
+        let coverLanguages = toArray(updated.coverLanguages)
+        if (!equalArrays(coverLanguages, current?.coverLanguages ?? []))
+            changes.coverLanguages = coverLanguages
+        if (updated.updateIntervalHours != current?.updateIntervalHours)
+            changes.updateIntervalHours = updated.updateIntervalHours
+
+        if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
+        else return changes
+    }
+
+    function getBookWalkerUpdates(
+        current: ProviderConfigDto | undefined,
+        updated: ProviderConfigDto
+    ): ProviderConfigUpdateDto | undefined {
+        let changes = getProviderUpdates(current, updated) || {}
+        if (updated.updateIntervalHours != current?.updateIntervalHours)
+            changes.updateIntervalHours = updated.updateIntervalHours
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
         else return changes

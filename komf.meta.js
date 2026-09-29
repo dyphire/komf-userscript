@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Komf
 // @namespace    https://github.com/dyphire/komf-userscript
-// @version      0.13.4
+// @version      0.13.5
 // @description  Komf userscript
 // @author       snd-r
 // @include      http://localhost:25600/*

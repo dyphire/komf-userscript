@@ -434,6 +434,32 @@
 
                                 <div v-if="element.name === 'mangaBaka'" class="col-auto" style="padding: 8px 0 0 0">
                                   <q-select v-model="config.defaultProviders[index].mode" :options="['API','DATABASE']" label="Mode" dense filled />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].coverLanguages"
+                                    label="Cover Languages"
+                                    dense
+                                    filled
+                                    hint="Comma-separated BCP-47 codes (e.g. en, ja)"
+                                  />
+                                  <q-input
+                                    v-model.number="config.defaultProviders[index].updateIntervalHours"
+                                    label="DB Update Interval (hours)"
+                                    dense
+                                    filled
+                                    type="number"
+                                    hint="0 = manual only, default 24"
+                                  />
+                                </div>
+
+                                <div v-if="element.name === 'bookWalker'" class="col-auto" style="padding: 8px 0 0 0">
+                                  <q-input
+                                    v-model.number="config.defaultProviders[index].updateIntervalHours"
+                                    label="DB Update Interval (hours)"
+                                    dense
+                                    filled
+                                    type="number"
+                                    hint="0 = manual only, default 24"
+                                  />
                                 </div>
 
                                 <div v-if="element.name === 'aniList'" class="col-auto" style="padding: 8px 0 0 0">
@@ -999,6 +1025,32 @@
 
                                 <div v-if="element.name === 'mangaBaka'" class="col-auto" style="padding: 8px 0 0 0">
                                   <q-select v-model="config.libraryProviders[libraryIndex].providers[index].mode" :options="['API','DATABASE']" label="Mode" dense filled />
+                                  <q-input
+                                    v-model="config.libraryProviders[libraryIndex].providers[index].coverLanguages"
+                                    label="Cover Languages"
+                                    dense
+                                    filled
+                                    hint="Comma-separated BCP-47 codes (e.g. en, ja)"
+                                  />
+                                  <q-input
+                                    v-model.number="config.libraryProviders[libraryIndex].providers[index].updateIntervalHours"
+                                    label="DB Update Interval (hours)"
+                                    dense
+                                    filled
+                                    type="number"
+                                    hint="0 = manual only, default 24"
+                                  />
+                                </div>
+
+                                <div v-if="element.name === 'bookWalker'" class="col-auto" style="padding: 8px 0 0 0">
+                                  <q-input
+                                    v-model.number="config.libraryProviders[libraryIndex].providers[index].updateIntervalHours"
+                                    label="DB Update Interval (hours)"
+                                    dense
+                                    filled
+                                    type="number"
+                                    hint="0 = manual only, default 24"
+                                  />
                                 </div>
 
                               <div v-if="element.name === 'aniList'" class="col-auto" style="padding: 8px 0 0 0">
