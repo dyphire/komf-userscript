@@ -66,6 +66,15 @@
 
                   <q-card flat>
                     <q-input class="q-pt-sm q-pb-sm" v-model="komfUrl" label="komf url" filled />
+                    <q-input
+                      class="q-pb-sm"
+                      v-model="authKey"
+                      label="komf auth key (optional)"
+                      filled
+                      type="password"
+                      autocomplete="off"
+                      hint="Required when komf is exposed beyond LAN with KOMF_AUTH_KEY set"
+                    />
                     <div class="row justify-start">
                       <div class="col-auto">
                         <q-btn class="text-body2" color="secondary" no-caps @click="loadConfig">Check
@@ -156,15 +165,18 @@ const connectionSuccess = ref(false)
 const configUpdating = ref(false)
 
 const komfUrl = ref(settings.komfUrl)
+const authKey = ref(settings.komfAuthKey)
 
 loadConfig()
 
 function dialogCancel() {
     komfUrl.value = settings.komfUrl
+    authKey.value = settings.komfAuthKey
 }
 
 async function dialogConfirm() {
     settings.komfUrl = komfUrl.value.replace(/\/$/, '')
+    settings.komfAuthKey = authKey.value.trim()
     if (connectionSuccess.value) {
         await updateConfig()
     }

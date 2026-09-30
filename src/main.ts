@@ -8,6 +8,7 @@ import quasarCss from 'quasar/src/css/index.sass?inline'
 import svgMdiV6 from 'quasar/icon-set/svg-mdi-v6.mjs'
 import { mdiSvgPaths } from '@/mdi-svg-paths'
 import { CSS_HOSTS, detectHost } from '@/host'
+import { useSettingsStore } from '@/stores/settings'
 
 import App from './App.vue'
 import KomfConfigService from '@/services/komf-config.service'
@@ -67,6 +68,20 @@ app.use(Quasar, {
 app.use(createPinia())
 
 const http = axios.create({ headers: { 'X-Requested-With': 'XMLHttpRequest' } } as AxiosRequestConfig)
+// komf 服务端鉴权（KOMF_AUTH_KEY）：非本地/局域网来源的敏感操作需要密钥。
+// 与 WebUI 的 cookie 登录不同，脚本统一用服务端为 API 客户端提供的
+// `Authorization: Bearer <base64(密钥)>` 头携带（服务端解码后恒定时间比较）。
+const settings = useSettingsStore()
+http.interceptors.request.use((config) => {
+    const key = settings.komfAuthKey.trim()
+    if (key) {
+        const bytes = new TextEncoder().encode(key)
+        let binary = ''
+        bytes.forEach((b) => (binary += String.fromCharCode(b)))
+        config.headers.set('Authorization', `Bearer ${btoa(binary)}`)
+    }
+    return config
+})
 const komfMetadata = new KomfMetadataService(http)
 const komfConfig = new KomfConfigService(http)
 

@@ -23,7 +23,9 @@ export default class KomfConfigService {
             let msg = 'Failed to retrieve config'
 
             if (axios.isAxiosError(e)) {
-                msg = e.message
+                msg = e.response?.status == 401
+                    ? 'Unauthorized: enter the komf auth key in Connection settings'
+                    : e.message
             }
             throw new Error(msg)
         }
