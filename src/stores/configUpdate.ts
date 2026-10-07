@@ -191,7 +191,8 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
 
     function providerExtras(key: string, value: ProviderConfigDto) {
         return {
-            ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60 } } : {}),
+            ...(key === 'bangumi' && !value.archive ? { archive: { enabled: false, dir: null, updateIntervalHours: 168, idleReleaseSecs: 60, staffChineseNames: false } } : {}),
+            ...(key === 'bangumi' && value.archive && value.archive.staffChineseNames == undefined ? { archive: { ...value.archive, staffChineseNames: false } } : {}),
             ...(key === 'eHentai' && !value.archive ? { archive: { enabled: false, url: null, dbFile: null, updateIntervalHours: 168, idleReleaseSecs: 60, searchCategoryFilter: [], searchUploaderFilter: [] } } : {}),
             ...((key === 'mangaBaka' || key === 'bookWalker') && value.updateIntervalHours == undefined ? { updateIntervalHours: 24 } : {}),
             ...(key === 'mangaBaka' && !value.coverLanguages ? { coverLanguages: ['en', 'ja'] } : {})
@@ -864,6 +865,9 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             changes.tagsScoreThreshold = updated.tagsScoreThreshold
         if (updated.tagsSizeLimit != current?.tagsSizeLimit)
             changes.tagsSizeLimit = updated.tagsSizeLimit
+        let titleLanguagePriority = toArray(updated.titleLanguagePriority)
+        if (!equalArrays(titleLanguagePriority, current?.titleLanguagePriority ?? []))
+            changes.titleLanguagePriority = titleLanguagePriority
 
         if (Object.entries(changes).every(val => val[1] === undefined)) return undefined
         else return changes
@@ -902,6 +906,7 @@ export const useConfigUpdateStore = defineStore('settingsUpdate', () => {
             if (newArch.dir != curArch?.dir) archChanges.dir = newArch.dir ?? null
             if (newArch.updateIntervalHours != curArch?.updateIntervalHours) archChanges.updateIntervalHours = newArch.updateIntervalHours
             if (newArch.idleReleaseSecs != curArch?.idleReleaseSecs) archChanges.idleReleaseSecs = newArch.idleReleaseSecs ?? null
+            if (newArch.staffChineseNames != curArch?.staffChineseNames) archChanges.staffChineseNames = newArch.staffChineseNames
             if (Object.keys(archChanges).length > 0) changes.archive = archChanges
         }
 

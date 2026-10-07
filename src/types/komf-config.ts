@@ -191,6 +191,7 @@ export interface ProviderConfigUpdateDto {
     // aniList specific
     tagsScoreThreshold?: number,
     tagsSizeLimit?: number,
+    titleLanguagePriority?: any,
     // mangaBaka specific
     mode?: string,
     // mangaBaka / bookWalker specific
@@ -403,6 +404,7 @@ export interface BangumiArchiveConfigDto {
     dir?: string | null,
     updateIntervalHours: number,
     idleReleaseSecs?: number | null,
+    staffChineseNames?: boolean,
 }
 
 export interface ProviderConfigDto {
@@ -431,6 +433,7 @@ export interface ProviderConfigDto {
     coverLanguages?: any,
     tagsScoreThreshold?: number,
     tagsSizeLimit?: number,
+    titleLanguagePriority?: any,
     mode?: string,
     // mangaBaka / bookWalker specific
     updateIntervalHours?: number,
@@ -523,7 +526,8 @@ export class DefaultProvidersConfig implements ProvidersConfigDto {
     aniList: ProviderConfigDto = {
         ...new DefaultProviderConfig(),
         tagsScoreThreshold: 60,
-        tagsSizeLimit: 15
+        tagsSizeLimit: 15,
+        titleLanguagePriority: []
     }
     bookWalker: ProviderConfigDto = new DefaultProviderConfig()
     kodansha: ProviderConfigDto = new DefaultProviderConfig()

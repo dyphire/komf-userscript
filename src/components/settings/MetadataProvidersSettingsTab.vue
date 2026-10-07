@@ -419,6 +419,11 @@
                                     filled
                                     type="number"
                                   />
+                                  <q-toggle
+                                    v-model="config.defaultProviders[index].archive!.staffChineseNames"
+                                    label="Archive Staff Chinese Names"
+                                    dense
+                                  />
                                 </div>
 
                                 <div v-if="element.name === 'mangaDex'" class="col-auto" style="padding: 8px 0 0 0">
@@ -476,6 +481,13 @@
                                     dense
                                     filled
                                     type="number"
+                                  />
+                                  <q-input
+                                    v-model="config.defaultProviders[index].titleLanguagePriority"
+                                    label="Title Language Priority"
+                                    dense
+                                    filled
+                                    hint="Comma-separated (english, romaji, native); empty = account userPreferred"
                                   />
                                 </div>
                               </q-expansion-item>
@@ -1010,6 +1022,11 @@
                                   filled
                                   type="number"
                                 />
+                                <q-toggle
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].archive!.staffChineseNames"
+                                  label="Archive Staff Chinese Names"
+                                  dense
+                                />
                               </div>
 
                               <div v-if="element.name === 'mangaDex'" class="col-auto" style="padding: 8px 0 0 0">
@@ -1067,6 +1084,13 @@
                                   dense
                                   filled
                                   type="number"
+                                />
+                                <q-input
+                                  v-model="config.libraryProviders[libraryIndex].providers[index].titleLanguagePriority"
+                                  label="Title Language Priority"
+                                  dense
+                                  filled
+                                  hint="Comma-separated (english, romaji, native); empty = account userPreferred"
                                 />
                               </div>
                             </q-expansion-item>
